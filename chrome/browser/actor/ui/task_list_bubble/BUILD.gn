@@ -25,6 +25,7 @@ source_set("ui") {
     "//chrome/browser/ui",
     "//chrome/common",
     "//content/public/browser",
+    "//custom_browser:buildflags",
     "//ui/views",
   ]
 }
@@ -61,6 +62,7 @@ source_set("controller_impl") {
     "//chrome/browser/ui/tabs:tab_strip",
     "//chrome/browser/ui/views/interaction",
     "//chrome/browser/ui/views/toolbar",
+    "//custom_browser:buildflags",
     "//ui/base",
     "//ui/views",
   ]

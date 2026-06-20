@@ -33,6 +33,10 @@
 #include "chrome/browser/finds/core/finds_service.h"
 #include "chrome/browser/first_run/first_run.h"
 #include "chrome/browser/glic/glic_pref_names.h"
+#include "custom_browser/buildflags.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/browser/nexus/launcher/nexus_launcher_prefs.h"
+#endif
 #include "chrome/browser/glic/suggestions/contextual_cueing_prefs.h"
 #include "chrome/browser/gpu/gpu_mode_manager.h"
 #include "chrome/browser/lifetime/browser_shutdown.h"
@@ -1709,6 +1713,12 @@ void RegisterLocalState(PrefRegistrySimple* registry) {
   registry->RegisterIntegerPref(prefs::kChromeDataRegionSetting, 0);
 
   glic::prefs::RegisterLocalStatePrefs(registry);
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // custom_browser (Velloc): Nexus launcher background-mode pref. Registered
+  // alongside Glic's launcher pref; read by NexusBackgroundModeManager.
+  nexus::RegisterNexusLauncherLocalStatePrefs(registry);
+#endif
 
   registry->RegisterIntegerPref(prefs::kToastAlertLevel, 0);
 

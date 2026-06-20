@@ -4926,6 +4926,10 @@ static_library("ui") {
 
     if( enable_custom_browser) {
        sources += browser_view_sources
+       deps += [
+         "//custom_browser:buildflags",
+         "//custom_browser/browser/nexus/launcher:delegate",
+       ]
     }
     sources += get_target_outputs(":webui_name_variants")
 

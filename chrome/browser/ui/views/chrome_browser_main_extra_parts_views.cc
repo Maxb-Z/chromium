@@ -4,6 +4,11 @@
 
 #include "chrome/browser/ui/views/chrome_browser_main_extra_parts_views.h"
 
+#include "custom_browser/buildflags.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/ui/view/nexus_launcher_delegate_impl.h"
+#endif
+
 #include <utility>
 
 #include "base/command_line.h"
@@ -104,6 +109,13 @@ void ChromeBrowserMainExtraPartsViews::PreCreateThreads() {
 }
 
 void ChromeBrowserMainExtraPartsViews::PreProfileInit() {
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // Register the Nexus launcher delegate so the tray icon can open the Nexus
+  // window. This lives in the UI layer because window_util is compiled into
+  // //chrome/browser/ui, which the launcher target cannot depend on (cycle).
+  custom_browser::InstallNexusLauncherDelegate();
+#endif
+
   if (ui_devtools::UiDevToolsServer::IsUiDevToolsEnabled(
           ui_devtools::switches::kEnableUiDevTools)) {
     base::FilePath output_dir;

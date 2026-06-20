@@ -10,6 +10,7 @@
 #include "chrome/browser/ui/color/chrome_color_id.h"
 #include "chrome/browser/ui/views/chrome_layout_provider.h"
 #include "chrome/grit/generated_resources.h"
+#include "custom_browser/buildflags.h"
 #include "components/vector_icons/vector_icons.h"
 #include "ui/base/l10n/l10n_util.h"
 #include "ui/base/metadata/metadata_impl_macros.h"
@@ -224,9 +225,22 @@ void ActorTaskListBubbleRowButton::UpdateAccessibleName() {
   std::u16string_view subtitle_text = GetSubtitleText();
   std::u16string_view title_text = GetTitleText();
 
-  Button::GetViewAccessibility().SetName(
-      subtitle_text.empty() ? std::u16string(title_text)
-                            : base::StrCat({title_text, u", ", subtitle_text}));
+  std::u16string accessible_name =
+      subtitle_text.empty()
+          ? std::u16string(title_text)
+          : base::StrCat({title_text, u", ", subtitle_text});
+  Button::GetViewAccessibility().SetName(accessible_name);
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // The per-row launch icon is a focusable button that
+  // CreateVectorImageButtonWithNativeTheme leaves without an accessible name.
+  // When it becomes visible on row hover it trips a paint-time accessibility
+  // DCHECK in DCHECK-enabled builds, crashing when the user opens the task
+  // list bubble. Give it the row's name so the bubble can be opened and used
+  // (e.g. to pause the web operation) without crashing.
+  if (redirect_icon_ && !accessible_name.empty()) {
+    redirect_icon_->GetViewAccessibility().SetName(accessible_name);
+  }
+#endif
 }
 
 BEGIN_METADATA(ActorTaskListBubbleRowButton)
