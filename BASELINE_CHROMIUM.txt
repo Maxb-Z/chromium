@@ -1,0 +1,3 @@
+baseline_ref: upstream/149.0.7827.22
+baseline_sha: upstream/149.0.7827.22{commit}
+note: This repo is a snapshot source drop (no Chromium history).

@@ -23,6 +23,7 @@
 #include "chrome/browser/ui/webui/metrics_handler.h"
 #include "chrome/browser/ui/webui/page_not_available_for_guest/page_not_available_for_guest_ui.h"
 #include "chrome/browser/ui/webui/plural_string_handler.h"
+#include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_features.h"
 #include "chrome/common/chrome_switches.h"
 #include "chrome/common/pref_names.h"
@@ -51,6 +52,10 @@
 #include "ui/base/resource/resource_bundle.h"
 #include "ui/base/webui/web_ui_util.h"
 #include "ui/webui/webui_util.h"
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/ui/web_ui/custom_component_extensions_handler.h"
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 
 #if BUILDFLAG(IS_ANDROID)
 #include "chrome/browser/ui/webui/current_channel_logo.h"
@@ -544,6 +549,12 @@ ExtensionsUI::ExtensionsUI(content::WebUI* web_ui) : WebUIController(web_ui) {
 
   source = CreateAndAddExtensionsSource(profile, *in_dev_mode_);
   ManagedUIHandler::Initialize(web_ui, source);
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  web_ui->AddMessageHandler(
+      std::make_unique<custom_browser::CustomComponentExtensionsHandler>(
+          profile));
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 
   // Need to allow <object> elements so that the <extensionoptions> browser
   // plugin can be loaded within chrome://extensions.

@@ -25,6 +25,10 @@ enum ImporterTypeMetrics {
 #if BUILDFLAG(IS_WIN)
   IMPORTER_METRICS_EDGE = 7,
 #endif
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || \
+    (BUILDFLAG(IS_LINUX) && !BUILDFLAG(IS_CHROMEOS))
+  IMPORTER_METRICS_CHROME = 8,
+#endif
 
   // Insert new values here. Never remove any existing values, as this enum is
   // used to bucket a UMA histogram, and removing values breaks that.
@@ -59,6 +63,12 @@ void LogImporterUseToMetrics(const std::string& metric_postfix,
     case user_data_importer::TYPE_BOOKMARKS_FILE:
       metrics_type = IMPORTER_METRICS_BOOKMARKS_FILE;
       break;
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || \
+    (BUILDFLAG(IS_LINUX) && !BUILDFLAG(IS_CHROMEOS))
+    case user_data_importer::TYPE_CHROME:
+      metrics_type = IMPORTER_METRICS_CHROME;
+      break;
+#endif
   }
 
   // Note: This leaks memory, which is the expected behavior as the factory

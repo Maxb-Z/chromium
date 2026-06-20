@@ -28,6 +28,14 @@
 #include "chromeos/components/kiosk/kiosk_utils.h"
 #endif
 
+#if BUILDFLAG(IS_MAC)
+#include "chrome/common/chrome_features.h"
+#endif
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/ui/view/custom_browser_view.h"
+#endif  // defined(ENABLE_CUSTOM_BROWSER)
+
 // static
 std::unique_ptr<BrowserWindow, BrowserWindowDeleter>
 BrowserWindow::CreateBrowserWindow(Browser* browser,
@@ -37,7 +45,7 @@ BrowserWindow::CreateBrowserWindow(Browser* browser,
     return std::unique_ptr<BrowserWindow, BrowserWindowDeleter>(
         new WebUIBrowserWindow(browser));
   }
-
+  // Create the BrowserView and BrowserFrame.
 #if defined(USE_AURA)
   // Avoid generating too many occlusion tracking calculation events before this
   // function returns. The occlusion status will be computed only once once this
@@ -50,7 +58,9 @@ BrowserWindow::CreateBrowserWindow(Browser* browser,
   BrowserView* view = nullptr;
 #if BUILDFLAG(IS_CHROMEOS)
   view = new BrowserViewAsh(browser);
-#else
+#elif BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  view = new CustomBrowserView(browser);
+#else  // ENABLE_CUSTOM_BROWSER
   view = new BrowserView(browser);
 #endif
   auto browser_widget = std::make_unique<BrowserWidget>(view);

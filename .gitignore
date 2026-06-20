@@ -1,3 +1,8 @@
+# custom_browser start
+/custom_browser/
+**/velloc/*
+**/velloc
+# custom_browser end
 /client-py/
 *.bak
 *.code-workspace
@@ -223,6 +228,7 @@ vs-chromium-project.txt
 /content/test/data/plugin/
 /content/test/gpu/.webgpu_typescript/
 /content/web_ui_test_mojo_bindings.xml
+/tools/clang/
 /data
 /delegate_execute
 /device/serial/device_serial_mojo.xml

@@ -10,7 +10,9 @@
 #include "base/files/file_util.h"
 #include "base/files/scoped_temp_dir.h"
 #include "base/path_service.h"
+#include "chrome/common/buildflags.h"
 #include "chrome/common/chrome_constants.h"
+#include "custom_browser/common/product_version.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
 namespace web_app {
@@ -33,8 +35,14 @@ class WebAppLauncherUpdateTest : public testing::Test {
     // where UpdatePwaLaunchers() expects it to be.
     base::FilePath current_dir_path;
     ASSERT_TRUE(base::PathService::Get(base::DIR_EXE, &current_dir_path));
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+    const base::FilePath mock_version_dir_path =
+        current_dir_path.AppendASCII(
+            custom_browser::kCustomBrowserProductVersion);
+#else
     const base::FilePath mock_version_dir_path =
         current_dir_path.AppendASCII(chrome::kChromeVersion);
+#endif
     ASSERT_TRUE(mock_version_dir_.Set(mock_version_dir_path));
 
     latest_version_path_ = mock_version_dir_path.Append(

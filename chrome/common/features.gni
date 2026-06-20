@@ -89,6 +89,7 @@ chrome_grit_defines = [
   "enable_arcore=$enable_arcore",
   "enable_cardboard=$enable_cardboard",
   "enable_compose=$enable_compose",
+  "enable_custom_browser=$enable_custom_browser",
   "enable_openxr=$enable_openxr",
   "enable_printing=$enable_printing",
   "enable_extensions=$enable_extensions",

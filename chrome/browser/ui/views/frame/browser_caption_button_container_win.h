@@ -40,6 +40,7 @@ class BrowserCaptionButtonContainer : public views::View,
 
  private:
   friend class BrowserFrameViewWin;
+  friend class CaptionContainerNativeUI;
 
   // views::View:
   void AddedToWidget() override;

@@ -530,6 +530,11 @@ inline constexpr char kChromeUISessionServiceInternalsPath[] =
     "session-service";
 #endif
 
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+inline constexpr char kChromeUICustomBrowserHost[] = "custom.top-chrome";
+inline constexpr char kChromeUICustomBrowserURL[] = "chrome://custom.top-chrome";
+#endif
+
 #if BUILDFLAG(ENTERPRISE_WATERMARK)
 inline constexpr char kChromeUIWatermarkHost[] = "watermark";
 inline constexpr char kChromeUIWatermarkURL[] = "chrome://watermark/";

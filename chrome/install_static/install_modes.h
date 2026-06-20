@@ -33,6 +33,7 @@
 #include <string>
 
 #include "build/branding_buildflags.h"
+#include "chrome/install_static/buildflags.h"
 
 // Include the brand-specific values. Each of these must define:
 // - kCompanyPathName, kProductPathName and kSafeBrowsingName constants.
@@ -44,6 +45,8 @@
 #include "chrome/install_static/google_chrome_install_modes.h"
 #elif BUILDFLAG(GOOGLE_CHROME_FOR_TESTING_BRANDING)
 #include "chrome/install_static/google_chrome_for_testing_install_modes.h"
+#elif BUILDFLAG(ENABLE_CUSTOM_BROWSER) && !BUILDFLAG(CUSTOM_BRANDING_IS_DEFAULT)
+#include CUSTOM_INSTALL_MODES_HEADER
 #else
 #include "chrome/install_static/chromium_install_modes.h"
 #endif

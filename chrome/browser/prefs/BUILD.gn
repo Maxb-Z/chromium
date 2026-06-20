@@ -195,6 +195,10 @@ source_set("impl") {
     deps += [ "//chrome/browser/printing" ]
   }
 
+  if (enable_custom_browser) {
+    deps += [ "//custom_browser/ui/mojom:mojo_bindings" ]
+  }
+
   if (enable_extensions_core) {
     deps += [ "//extensions/common" ]
   }

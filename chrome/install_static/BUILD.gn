@@ -6,6 +6,14 @@ import("//build/buildflag_header.gni")
 import("//build/config/chrome_build.gni")
 import("//testing/test.gni")
 
+custom_branding_is_default =
+    branding_path_component == "chromium" || branding_path_component == ""
+custom_install_modes_header = "chrome/install_static/chromium_install_modes.h"
+if (enable_custom_browser && !custom_branding_is_default) {
+  custom_install_modes_header =
+      "custom_browser/chromium_overrides/${branding_path_component}/install/custom_install_modes.h"
+}
+
 buildflag_header("buildflags") {
   header = "buildflags.h"
   if (is_chrome_branded && is_win) {
@@ -13,9 +21,26 @@ buildflag_header("buildflags") {
   } else {
     flags = [ "USE_GOOGLE_UPDATE_INTEGRATION=false" ]
   }
+
+  flags += [
+    "ENABLE_CUSTOM_BROWSER=$enable_custom_browser",
+    "CUSTOM_BRANDING_IS_DEFAULT=$custom_branding_is_default",
+    "CUSTOM_BRANDING_PATH_COMPONENT=\"$branding_path_component\"",
+    "CUSTOM_BRANDING_PATH_COMPONENT_WIDE=L\"$branding_path_component\"",
+    "CUSTOM_BRANDING_BROWSER_PROG_ID_PREFIX_WIDE=L\"${branding_path_component}HTM\"",
+    "CUSTOM_BRANDING_PDF_PROG_ID_PREFIX_WIDE=L\"${branding_path_component}PDF\"",
+    "CUSTOM_BRANDING_HTML_DOC_DESC_WIDE=L\"$branding_path_component HTML Document\"",
+    "CUSTOM_BRANDING_PDF_DOC_DESC_WIDE=L\"$branding_path_component PDF Document\"",
+  ]
 }
 
 if (is_win) {
+  config("custom_install_modes_config") {
+    defines = [
+      "CUSTOM_INSTALL_MODES_HEADER=\"${custom_install_modes_header}\"",
+    ]
+  }
+
   # This file contains utility functions that only depend on kernel32.
   # Please don't add dependencies on other system libraries.
   static_library("install_static_util") {
@@ -29,6 +54,7 @@ if (is_win) {
       "//build:branding_buildflags",
       "//chrome/chrome_elf:nt_registry",
     ]
+    public_configs = [ ":custom_install_modes_config" ]
 
     sources = [
       "../app/chrome_dll_resource.h",
@@ -57,7 +83,19 @@ if (is_win) {
     } else if (is_chrome_for_testing_branded) {
       sources += [ "google_chrome_for_testing_install_modes.h" ]
     } else {
-      sources += [ "chromium_install_modes.h" ]
+      if (enable_custom_browser && branding_path_component != "chromium") {
+        custom_install_modes_dir =
+            "//custom_browser/chromium_overrides/${branding_path_component}/install"
+        sources += [
+          "${custom_install_modes_dir}/custom_install_modes.cc",
+          "${custom_install_modes_dir}/custom_install_modes.h",
+        ]
+      } else {
+        sources += [
+          "chromium_install_modes.cc",
+          "chromium_install_modes.h",
+        ]
+      }
     }
 
     libs = [ "kernel32.lib" ]

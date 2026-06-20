@@ -16,6 +16,9 @@
 #include "chrome/common/extensions/extension_constants.h"
 #include "chrome/grit/browser_resources.h"
 #include "chrome/grit/component_extension_resources.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/extensions/custom_component_extensions.h"
+#endif
 #include "extensions/buildflags/buildflags.h"
 #include "extensions/common/constants.h"
 #include "printing/buildflags/buildflags.h"
@@ -66,6 +69,12 @@ bool IsComponentExtensionAllowlisted(const std::string& extension_id) {
     return true;
   }
 
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  if (custom_browser::IsCustomComponentExtensionAllowlisted(extension_id)) {
+    return true;
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+
 #if BUILDFLAG(IS_CHROMEOS)
   if (chromeos::features::IsUploadOfficeToCloudEnabled() &&
       extension_id == extension_misc::kODFSExtensionId) {
@@ -111,6 +120,13 @@ bool IsComponentExtensionAllowlisted(int manifest_resource_id) {
 #endif  // BUILDFLAG(IS_CHROMEOS)
       return true;
   }
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  if (custom_browser::IsCustomComponentExtensionAllowlisted(
+          manifest_resource_id)) {
+    return true;
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 
   LOG(ERROR) << "Component extension with manifest resource id "
              << manifest_resource_id << " not in allowlist and is not being "

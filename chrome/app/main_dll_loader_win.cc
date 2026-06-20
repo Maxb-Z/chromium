@@ -39,6 +39,8 @@
 #include "chrome/common/chrome_paths.h"
 #include "chrome/common/chrome_result_codes.h"
 #include "chrome/common/chrome_switches.h"
+#include "chrome/common/buildflags.h"
+#include "custom_browser/common/product_version.h"
 #include "chrome/installer/util/update_did_run_state.h"
 #include "chrome/installer/util/util_constants.h"
 #include "components/activity_reporter/buildflags.h"
@@ -83,6 +85,13 @@ base::FilePath GetModulePath(std::wstring_view module_name) {
   // Look for the module in a versioned sub-directory of the current
   // executable's directory and return the path if it can be read. This is the
   // expected location of modules for proper installs.
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  const base::FilePath product_module_path =
+      exe_dir.AppendASCII(custom_browser::kCustomBrowserProductVersion)
+          .Append(module_name);
+  if (ModuleCanBeRead(product_module_path))
+    return product_module_path;
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
   const base::FilePath module_path =
       exe_dir.AppendASCII(chrome::kChromeVersion).Append(module_name);
   if (ModuleCanBeRead(module_path))

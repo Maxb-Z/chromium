@@ -15,6 +15,7 @@
 #include "content/browser/renderer_host/render_process_host_impl.h"
 #include "content/browser/renderer_host/render_view_host_impl.h"
 #include "content/public/browser/browser_thread.h"
+#include "content/public/common/buildflags.h"
 #include "third_party/blink/public/common/messaging/string_message_codec.h"
 
 #if BUILDFLAG(IS_ANDROID)
@@ -76,6 +77,18 @@ void MessagePortProvider::PostMessageToFrame(
   PostMessageToFrameInternal(page, source_origin, target_origin, data,
                              std::vector<blink::MessagePortDescriptor>());
 }
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+void MessagePortProvider::PostMessageToFrame(
+    Page& page,
+    const url::Origin* source_origin,
+    const url::Origin* target_origin,
+    const blink::WebMessagePayload& data,
+    std::vector<blink::MessagePortDescriptor> ports) {
+  PostMessageToFrameInternal(page, source_origin, target_origin, data,
+                             std::move(ports));
+}
+#endif
 
 #if BUILDFLAG(IS_ANDROID)
 void MessagePortProvider::PostMessageToFrame(

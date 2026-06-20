@@ -46,6 +46,11 @@
 #include "components/guest_view/browser/slim_web_view/slim_web_view.mojom.h"  // nogncheck
 #endif
 
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/ui/mojom/browser_controller.mojom.h"
+#include "custom_browser/ui/web_ui/custom_browser_webui.h"
+#include "custom_browser/chromium_hooks/hook_dispatcher.h"
+#endif
 
 #if BUILDFLAG(ENABLE_SESSION_SERVICE)
 #include "chrome/browser/ui/webui/tab_strip_internals/tab_strip_internals_ui.h"
@@ -121,6 +126,11 @@ void PopulateChromeWebUIFrameBindersPartsFeatures(
   }
 #endif
 
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  RegisterWebUIControllerInterfaceBinder<custom_browser::mojom::PageHandlerFactory,
+                                         CustomBrowserWebUI>(map);
+  custom_browser::PopulateWebUIRenderFrameBinders(map);
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 
 #if BUILDFLAG(ENABLE_SESSION_SERVICE)
   RegisterWebUIControllerInterfaceBinder<

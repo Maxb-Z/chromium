@@ -891,6 +891,18 @@
     "META": {"sizes": {"includes": [2500],}},
     "includes": [5620],
   },
+  "<(SHARED_INTERMEDIATE_DIR)/custom_browser/resources/browser_webui/resources.grd": {
+    "META": {"sizes": {"includes": [100]}},
+    "includes": [5650],
+  },
+  "custom_browser/resources/custom_browser_strings.grd": {
+    "META": {"sizes": {"messages": [1000]}},
+    "messages": [5660],
+  },
+  "<(SHARED_INTERMEDIATE_DIR)/custom_browser/resources/patch_webui/resources.grd": {
+    "META": {"sizes": {"includes": [100]}},
+    "includes": [5680],
+  },
   # END chrome/ miscellaneous section.
 
   # START chromeos/ section.
@@ -1738,9 +1750,10 @@
     "messages": [10120],
   },
 
-  "<(SHARED_INTERMEDIATE_DIR)/THIS_IS_A_PLACEHOLDER.grd": {
-    "META": {"sizes": {"includes": [800]}},
-    "includes": [12000],
+  # Custom browser generated resources.
+  "<(SHARED_INTERMEDIATE_DIR)/custom_browser/extensions/custom_component_extension_resources.grd": {
+    "META": {"sizes": {"includes": [2000]}},
+    "includes": [10140],
   },
 
   # END "everything else" section.

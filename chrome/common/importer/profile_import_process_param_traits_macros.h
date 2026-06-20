@@ -20,10 +20,11 @@
 #undef IPC_MESSAGE_EXPORT
 #define IPC_MESSAGE_EXPORT
 
-#if BUILDFLAG(IS_WIN)
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || \
+    (BUILDFLAG(IS_LINUX) && !BUILDFLAG(IS_CHROMEOS))
 IPC_ENUM_TRAITS_MIN_MAX_VALUE(user_data_importer::ImporterType,
                               user_data_importer::TYPE_UNKNOWN,
-                              user_data_importer::TYPE_EDGE)
+                              user_data_importer::TYPE_CHROME)
 #else
 IPC_ENUM_TRAITS_MIN_MAX_VALUE(user_data_importer::ImporterType,
                               user_data_importer::TYPE_UNKNOWN,

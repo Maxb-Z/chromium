@@ -4,7 +4,10 @@
 
 import("//build/config/chrome_build.gni")
 
-if (is_chrome_branded) {
+if (custom_browser_branding) {
+  branding_gn_path = "//custom_browser/chromium_overrides/" + branding_path_component + "/updater/branding.gni"
+  import(branding_gn_path)
+} else if (is_chrome_branded) {
   import("//chrome/updater/internal/branding_google.gni")
 } else {
   browser_name = "Chromium"

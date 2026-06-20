@@ -67,6 +67,32 @@ def BuildVersion():
     return '%s.%s.%s.%s' % (major, minor, build, patch)
 
 
+def ReadCustomBrowserVersionFile(version_file_path):
+    """Reads CUSTOM_BROWSER_* values from a key=value version file."""
+    values = {}
+    for line in open(version_file_path, 'r'):
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        if '=' not in line:
+            continue
+        key, val = line.split('=', 1)
+        values[key.strip()] = val.strip()
+
+    def require(key):
+        val = values.get(key)
+        if val is None or not val.isdigit():
+            raise Exception('Missing or invalid %s in %s' %
+                            (key, version_file_path))
+        return val
+
+    major = require('CUSTOM_BROWSER_MAJOR')
+    minor = require('CUSTOM_BROWSER_MINOR')
+    build = require('CUSTOM_BROWSER_BUILD')
+    patch = require('CUSTOM_BROWSER_PATCH')
+    return '%s.%s.%s.%s' % (major, minor, build, patch)
+
+
 def CompressUsingLZMA(build_dir,
                       compressed_file,
                       input_file,
@@ -201,6 +227,16 @@ def CopySectionFilesToStagingDir(config, section, staging_dir, src_dir,
         if src_paths and not os.path.exists(dst_dir):
             os.makedirs(dst_dir)
         for src_path in src_paths:
+            if os.path.isdir(src_path):
+                dst_path = os.path.join(dst_dir, os.path.basename(src_path))
+                shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+                for root, _, files in os.walk(src_path):
+                    for filename in files:
+                        g_archive_inputs.append(
+                            os.path.relpath(os.path.join(root, filename),
+                                            src_dir))
+                continue
+
             dst_path = os.path.join(dst_dir, os.path.basename(src_path))
             if not os.path.exists(dst_path):
                 g_archive_inputs.append(os.path.relpath(src_path, src_dir))
@@ -599,7 +635,14 @@ def main(options):
     """Main method that reads input file, creates archive file and writes
     resource input file.
     """
-    current_version = BuildVersion()
+    custom_version = None
+    if options.custom_browser_version_file:
+        custom_version = ReadCustomBrowserVersionFile(
+            options.custom_browser_version_file)
+    elif options.custom_browser_version:
+        custom_version = options.custom_browser_version
+
+    current_version = custom_version or BuildVersion()
 
     config = Readconfig(options.input_file, current_version)
 
@@ -774,6 +817,12 @@ def _ParseOptions():
                       action='store_true',
                       dest='verbose',
                       default=False)
+    parser.add_option(
+        '--custom_browser_version',
+        help='Optional custom browser version string (e.g., 1.0.0.0).')
+    parser.add_option(
+        '--custom_browser_version_file',
+        help='Optional custom browser VERSION file (key=value) to use.')
 
     options, _ = parser.parse_args()
     if not options.build_dir:

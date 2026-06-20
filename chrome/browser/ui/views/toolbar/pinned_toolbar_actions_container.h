@@ -28,6 +28,10 @@ namespace base {
 class ScopedClosureRunner;
 }
 
+namespace custom_browser::native_ui {
+class CreateToolbarButtonNativeUI;
+}  // namespace custom_browser::native_ui
+
 namespace views {
 class ActionViewController;
 }
@@ -131,6 +135,7 @@ class PinnedToolbarActionsContainer
  private:
   friend class PinnedSidePanelInteractiveTest;
   friend class PinnedToolbarActionsContainerTest;
+  friend class custom_browser::native_ui::CreateToolbarButtonNativeUI;
 
   // A struct representing the position and action being dragged.
   struct DropInfo;

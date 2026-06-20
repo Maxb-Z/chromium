@@ -547,6 +547,15 @@ template("chrome_extra_paks") {
       ]
     }
 
+    if (enable_custom_browser) {
+      sources += [ "$root_gen_dir/chrome/custom_browser_resources.pak",
+                   "$root_gen_dir/chrome/patch_webui_resources.pak",
+                   "$root_gen_dir/chrome/custom_component_extension_resources.pak" ]
+      deps += [ "//custom_browser/resources/browser_webui:resources",
+                "//custom_browser/resources/patch_webui:resources",
+                "//custom_browser/extensions:custom_component_extension_resources" ]
+    }
+
     if (enable_extensions_core) {
       sources += [
         "$root_gen_dir/chrome/extensions_resources.pak",

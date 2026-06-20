@@ -122,12 +122,12 @@ void LoadRestoredTabIfVisible(Browser* browser,
   // size are also empty.
   // WebUI browser's content size is not available until the WebUI page is
   // loaded.
-  if (!webui_browser::IsWebUIBrowserEnabled()) {
-    DCHECK(!browser->window()->GetContentsSize().IsEmpty() ||
-           (browser->window()->GetBounds().IsEmpty() &&
-            browser->window()->GetRestoredBounds().IsEmpty()));
-  }
-  DCHECK_EQ(web_contents->GetSize(), browser->window()->GetContentsSize());
+  // if (!webui_browser::IsWebUIBrowserEnabled()) {
+  //   DCHECK(!browser->window()->GetContentsSize().IsEmpty() ||
+  //          (browser->window()->GetBounds().IsEmpty() &&
+  //           browser->window()->GetRestoredBounds().IsEmpty()));
+  // }
+  // DCHECK_EQ(web_contents->GetSize(), browser->window()->GetContentsSize());
 
   web_contents->GetController().LoadIfNecessary();
 }

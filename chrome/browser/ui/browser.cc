@@ -49,6 +49,13 @@
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/buildflags.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
+#include "content/public/common/buildflags.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+// Nexus BrowserUpload: lets the agent answer a file <input> chooser with a
+// staged local file instead of showing the native dialog. See
+// custom_browser/browser/nexus/upload/nexus_file_chooser_interceptor.h.
+#include "custom_browser/browser/nexus/upload/nexus_file_chooser_interceptor.h"
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 #include "chrome/browser/content_settings/mixed_content_settings_tab_helper.h"
 #include "chrome/browser/content_settings/page_specific_content_settings_delegate.h"
 #include "chrome/browser/content_settings/sound_content_setting_observer.h"
@@ -2479,6 +2486,15 @@ void Browser::RunFileChooser(
     content::RenderFrameHost* render_frame_host,
     scoped_refptr<content::FileSelectListener> listener,
     const blink::mojom::FileChooserParams& params) {
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // If the Nexus agent staged an upload for this tab (BrowserUpload), answer
+  // the chooser with the staged file instead of showing the native dialog.
+  // Falls through to the normal picker when nothing is armed.
+  if (nexus::NexusPendingUpload::TryAnswerChooser(render_frame_host, listener,
+                                                  params)) {
+    return;
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
   FileSelectHelper::RunFileChooser(render_frame_host, std::move(listener),
                                    params);
 }

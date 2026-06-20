@@ -12,6 +12,9 @@
         Imported From Edge
       </message>
     </if>
+    <message name="IDS_BOOKMARK_GROUP_FROM_CHROME" desc="The group name of bookmarks from Google Chrome">
+      Imported From Chrome
+    </message>
     <message name="IDS_BOOKMARK_GROUP_FROM_FIREFOX" desc="The group name of bookmarks from Firefox">
       Imported From Firefox
     </message>

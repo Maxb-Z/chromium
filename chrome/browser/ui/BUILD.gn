@@ -27,6 +27,7 @@ import("//third_party/protobuf/proto_library.gni")
 import("//tools/metrics/generate_allowlist_from_histograms_file.gni")
 import("//ui/base/ui_features.gni")
 import("//ui/views/features.gni")
+import("//custom_browser/ui/custom_browser_view.gni")
 
 assert(enable_supervised_users)
 assert(!is_fuchsia, "Fuchsia shouldn't use anything in //chrome")
@@ -4923,6 +4924,9 @@ static_library("ui") {
       "views/webid/webid_utils.h",
     ]
 
+    if( enable_custom_browser) {
+       sources += browser_view_sources
+    }
     sources += get_target_outputs(":webui_name_variants")
 
     if (is_chromeos) {
@@ -5673,6 +5677,22 @@ static_library("ui") {
     deps += [
       "//components/offline_pages/core",
       "//components/offline_pages/core/background:background_offliner",
+    ]
+  }
+
+  if (enable_custom_browser) {
+    sources += browser_view_webui_sources
+    deps += [
+      "//components/guest_contents/browser",
+      # Browser::RunFileChooser consults this to answer Nexus BrowserUpload
+      # file pickers without showing the native dialog.
+      "//custom_browser/browser/nexus:file_chooser_interceptor",
+      "//custom_browser/browser/nexus:guest_config",
+      "//custom_browser/browser/nexus:nexus_settings_handler",
+      "//custom_browser/browser/nexus:nexus_webui_config",
+      "//custom_browser/common:common",
+      "//custom_browser/extensions:component_extensions",
+      "//custom_browser/resources:custom_browser_strings",
     ]
   }
 

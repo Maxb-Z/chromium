@@ -161,6 +161,11 @@ group("resources") {
     public_deps += [ "inline_login:resources" ]
   }
 
+  if (enable_custom_browser) {
+    public_deps += [ "//custom_browser/resources/browser_webui:resources",
+                     "//custom_browser/resources/patch_webui:resources" ]
+  }
+
   if (enable_dice_support) {
     public_deps += [
       "feature_showcase:resources",

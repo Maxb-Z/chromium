@@ -11,6 +11,7 @@
 #include "base/functional/function_ref.h"
 #include "base/memory/raw_ptr.h"
 #include "build/build_config.h"
+#include "chrome/common/buildflags.h"
 #include "chrome/browser/browser_process.h"
 #include "chrome/browser/profiles/profile.h"
 #include "chrome/browser/ui/browser.h"
@@ -319,6 +320,14 @@ gfx::Rect WindowSizer::GetDefaultWindowBounds(
     const display::Display& display) const {
   gfx::Rect work_area = display.work_area();
 
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  int padding = 2 * kWindowTilePixels;
+  int default_width = work_area.width() - 2 * padding;
+  int default_height = work_area.height() - 2 * padding;
+  return gfx::Rect(padding + work_area.x(), padding + work_area.y(), default_width,
+                   default_height);
+#else
+
   // The default size is either some reasonably wide width, or if the work
   // area is narrower, then the work area width less some aesthetic padding.
   int default_width = std::min(work_area.width() - 2 * kWindowTilePixels,
@@ -357,6 +366,7 @@ gfx::Rect WindowSizer::GetDefaultWindowBounds(
   return gfx::Rect(kWindowTilePixels + work_area.x(),
                    kWindowTilePixels + work_area.y(), default_width,
                    default_height);
+#endif // !BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 }
 
 void WindowSizer::AdjustBoundsToBeVisibleOnDisplay(

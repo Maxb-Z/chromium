@@ -35,6 +35,7 @@
 #include "base/win/windows_version.h"
 #include "chrome/common/chrome_constants.h"
 #include "chrome/common/chrome_paths.h"
+#include "chrome/install_static/buildflags.h"
 #include "chrome/install_static/install_details.h"
 #include "chrome/install_static/install_modes.h"
 #include "chrome/install_static/install_util.h"
@@ -65,6 +66,14 @@ enum class StartMenuShortcutStatus {
 void LogStartMenuShortcutStatus(StartMenuShortcutStatus status) {
   UMA_HISTOGRAM_ENUMERATION("Notifications.Windows.StartMenuShortcutStatus",
                             status);
+}
+
+std::wstring GetCustomBrandingName() {
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER) && !BUILDFLAG(CUSTOM_BRANDING_IS_DEFAULT)
+  return BUILDFLAG(CUSTOM_BRANDING_PATH_COMPONENT_WIDE);
+#else
+  return std::wstring();
+#endif
 }
 
 // Creates a zero-sized non-decorated foreground window that doesn't appear
@@ -575,11 +584,17 @@ std::wstring InstallUtil::GetAppDescription() {
 
 // static
 std::wstring InstallUtil::GetPublisherName() {
+  if (const std::wstring name = GetCustomBrandingName(); !name.empty()) {
+    return name;
+  }
   return installer::GetLocalizedString(IDS_ABOUT_VERSION_COMPANY_NAME_BASE);
 }
 
 // static
 std::wstring InstallUtil::GetShortcutName() {
+  if (const std::wstring name = GetCustomBrandingName(); !name.empty()) {
+    return name;
+  }
   // IDS_PRODUCT_NAME is automatically mapped to the mode-specific shortcut
   // name; see MODE_SPECIFIC_STRINGS in prebuild/create_string_rc.py.
   return installer::GetLocalizedString(IDS_PRODUCT_NAME_BASE);

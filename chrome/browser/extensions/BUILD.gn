@@ -646,6 +646,11 @@ source_set("extensions") {
   if (enable_spellcheck) {
     deps += [ "//chrome/browser/spellchecker" ]
   }
+
+  if (enable_custom_browser) {
+    deps += [ "//custom_browser/common:common" ]
+  }
+
   if (is_android) {
     sources += [
       "api/chrome_extensions_api_client_android.cc",
@@ -1546,6 +1551,10 @@ source_set("extensions") {
 
   if (enable_printing) {
     deps += [ "//chrome/browser/printing" ]
+  }
+
+  if (enable_custom_browser) {
+    deps += [ "//custom_browser/extensions:component_extensions" ]
   }
 
   if (enable_platform_apps) {

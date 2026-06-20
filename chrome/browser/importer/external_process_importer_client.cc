@@ -55,11 +55,17 @@ void ExternalProcessImporterClient::Start() {
       IDS_BOOKMARK_GROUP_FROM_FIREFOX,
       l10n_util::GetStringUTF8(IDS_BOOKMARK_GROUP_FROM_FIREFOX));
   localized_strings.try_emplace(
+      IDS_BOOKMARK_GROUP_FROM_CHROME,
+      l10n_util::GetStringUTF8(IDS_BOOKMARK_GROUP_FROM_CHROME));
+  localized_strings.try_emplace(
       IDS_BOOKMARK_GROUP_FROM_SAFARI,
       l10n_util::GetStringUTF8(IDS_BOOKMARK_GROUP_FROM_SAFARI));
   localized_strings.try_emplace(
       IDS_IMPORT_FROM_FIREFOX,
       l10n_util::GetStringUTF8(IDS_IMPORT_FROM_FIREFOX));
+  localized_strings.try_emplace(
+      IDS_IMPORT_FROM_CHROME,
+      l10n_util::GetStringUTF8(IDS_IMPORT_FROM_CHROME));
   localized_strings.try_emplace(
       IDS_IMPORT_FROM_ICEWEASEL,
       l10n_util::GetStringUTF8(IDS_IMPORT_FROM_ICEWEASEL));

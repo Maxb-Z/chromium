@@ -8,6 +8,8 @@
 #
 chrome.exe: %(ChromeDir)s\
 chrome_proxy.exe: %(ChromeDir)s\
+# Custom component extension files (custom_browser).
+resources\custom_extensions: %(VersionDir)s\resources\
 #
 # Chrome version dir assembly manifest.
 # The name of this file must match the name of the version dir, so we cannot
@@ -24,6 +26,7 @@ chrome_child.dll: %(VersionDir)s\
 chrome_elf.dll: %(VersionDir)s\
 chrome_pwa_launcher.exe: %(VersionDir)s\
 chrome_wer.dll: %(VersionDir)s\
+custom_browser_strings_en-US.pak: %(VersionDir)s\
 d3dcompiler_47.dll: %(VersionDir)s\
 eventlog_provider.dll: %(VersionDir)s\
 icudtl.dat: %(VersionDir)s\

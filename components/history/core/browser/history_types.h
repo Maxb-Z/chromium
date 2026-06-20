@@ -56,6 +56,7 @@ enum VisitSource {
   SOURCE_SAFARI_IMPORTED = 5,
   SOURCE_ACTOR = 6,  // Added by the GLIC actor.
   SOURCE_OS_MIGRATION_IMPORTED = 7,
+  SOURCE_CHROME_IMPORTED = 8,
 };
 
 // Corresponds to the "id" column of the "visits" SQL table.

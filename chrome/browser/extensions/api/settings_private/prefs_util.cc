@@ -35,6 +35,7 @@
 #include "chrome/browser/ui/toolbar/toolbar_pref_names.h"
 #include "chrome/common/extensions/api/settings_private.h"
 #include "chrome/common/pref_names.h"
+#include "content/public/common/buildflags.h"
 #include "components/autofill/core/common/autofill_prefs.h"
 #include "components/bookmarks/common/bookmark_pref_names.h"
 #include "components/browsing_data/core/pref_names.h"
@@ -77,6 +78,10 @@
 #include "extensions/browser/management_policy.h"
 #include "extensions/common/extension.h"
 
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/common/pref_names.h"
+#include "custom_browser/ui/mojom/browser_constants.mojom-forward.h"
+#endif
 #if BUILDFLAG(IS_CHROMEOS)
 #include "ash/constants/ash_pref_names.h"
 #include "ash/public/cpp/ambient/ambient_prefs.h"
@@ -111,6 +116,18 @@
 #endif
 
 namespace {
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+// Keep these Nexus-pref keys local here so chrome/browser/extensions does not
+// need an extra GN dependency on the nexus/llm pref header target.
+constexpr char kNexusWebappUrlPref[] = "nexus.webapp_url";
+constexpr char kNexusOpenaiModelPref[] = "nexus.openai_model";
+constexpr char kNexusAnthropicModelPref[] = "nexus.anthropic_model";
+constexpr char kNexusGoogleModelPref[] = "nexus.google_model";
+constexpr char kNexusOllamaBaseUrlPref[] = "nexus.ollama_base_url";
+constexpr char kNexusOllamaModelPref[] = "nexus.ollama_model";
+constexpr char kNexusProxyModelPref[] = "nexus.proxy_model";
+#endif
 
 #if BUILDFLAG(IS_CHROMEOS)
 bool IsPrivilegedCrosSetting(const std::string& pref_name) {
@@ -1323,6 +1340,32 @@ const PrefsUtil::TypedPrefMap& PrefsUtil::GetAllowlistedKeys() {
   (*s_allowlist)[optimization_guide::prefs::GetSettingEnabledPrefName(
       optimization_guide::UserVisibleFeatureKey::kContextualCueing)] =
       settings_api::PrefType::kNumber;
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // Custom browser UI settings.
+  (*s_allowlist)[kCustomUIModePrefPath] =
+      settings_api::PrefType::kNumber;
+  (*s_allowlist)[kCustomNewTabShowSearchPrefPath] =
+      settings_api::PrefType::kBoolean;
+  (*s_allowlist)[kCustomNewTabShowLogoPrefPath] =
+      settings_api::PrefType::kBoolean;
+  (*s_allowlist)[kCustomNewTabShowShortcutsPrefPath] =
+      settings_api::PrefType::kBoolean;
+  (*s_allowlist)[kNexusWebappUrlPref] =
+      settings_api::PrefType::kString;
+  (*s_allowlist)[kNexusOpenaiModelPref] =
+      settings_api::PrefType::kString;
+  (*s_allowlist)[kNexusAnthropicModelPref] =
+      settings_api::PrefType::kString;
+  (*s_allowlist)[kNexusGoogleModelPref] =
+      settings_api::PrefType::kString;
+  (*s_allowlist)[kNexusOllamaBaseUrlPref] =
+      settings_api::PrefType::kString;
+  (*s_allowlist)[kNexusOllamaModelPref] =
+      settings_api::PrefType::kString;
+  (*s_allowlist)[kNexusProxyModelPref] =
+      settings_api::PrefType::kString;
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 
   // AI enterprise prefs
   (*s_allowlist)
