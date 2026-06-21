@@ -37,6 +37,10 @@
 #include "chrome/browser/ui/browser_commands.h"
 #include "chrome/browser/ui/browser_tabstrip.h"
 #include "chrome/browser/ui/browser_window.h"
+#include "custom_browser/buildflags.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/ui/view/custom_browser_window_util.h"
+#endif
 #include "chrome/browser/ui/browser_window/public/browser_window_features.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
@@ -202,6 +206,22 @@ Browser* GetExistingBrowserForOpenBehavior(
         BrowserCollection::Order::kActivation);
   }
 #endif  // BUILDFLAG(IS_LINUX)
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // custom-browser: command-line URL opens into a running process must never
+  // target (or, with --same-tab, overwrite the active tab of) the kNexus
+  // chat window — it is TYPE_NORMAL and often the last-active window, so the
+  // scans above pick it. Reroute to an existing normal window, else return
+  // null so OpenTabsInBrowser creates a fresh one; a transient profile
+  // marker keeps that new window out of kNexus even for a profile that never
+  // consumed its startup default. This function is the single chokepoint for
+  // the reroute: only USE_EXISTING[_AND_OVERWRITE_ACTIVE_TAB] launches reach
+  // it (see DetermineBrowserOpenBehavior) — session restore, Ctrl+N and the
+  // agent's BrowserTool tab opens never come through here.
+  workspace_browser =
+      custom_browser::window_util::AdjustBrowserForExternalUrlOpen(
+          profile, workspace_browser);
+#endif
 
   return workspace_browser;
 }

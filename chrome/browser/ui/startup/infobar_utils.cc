@@ -28,7 +28,12 @@
 #include "components/infobars/content/content_infobar_manager.h"
 #include "components/prefs/pref_service.h"
 #include "content/public/common/content_switches.h"
+#include "custom_browser/buildflags.h"
 #include "google_apis/google_api_keys.h"
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/ui/startup/nexus_startup_prompts.h"
+#endif
 
 #if !BUILDFLAG(IS_CHROMEOS) && !BUILDFLAG(IS_ANDROID)
 #include "chrome/browser/ui/startup/default_browser_prompt/default_browser_prompt.h"
@@ -137,6 +142,24 @@ void AddInfoBarsIfNecessary(BrowserWindowInterface* browser,
       BiddingAndAuctionConsentedDebuggingDelegate::Create(web_contents);
     }
   }
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // custom-browser: the kNexus chat window shows no startup prompts — the
+  // session-crashed bubble, Windows startup-launch infobars, session-restore
+  // infobar, bad-flags prompt and the default-browser/pin/PDF chain below
+  // are all suppressed for it. Placement matters twice over: AFTER the
+  // automation/testing banners above (those still show, and e2e behavior is
+  // unchanged), and BEFORE the static `infobars_shown` first-profile flag
+  // below flips — so a later launch that lands in a normal window
+  // re-evaluates the whole chain there (deferral). The crash bubble's
+  // HasPendingUncleanExit gate burns once this window opens, so the
+  // suppressor stashes a transient marker that
+  // CustomBrowserView::InitializeCustomBrowser consumes on the next
+  // normal-type window.
+  if (custom_browser::nexus_startup_ui::MaybeSuppressStartupPrompts(browser)) {
+    return;
+  }
+#endif
 
   // Do not show any other info bars in Kiosk mode, because it's unlikely that
   // the viewer can act upon or dismiss them.

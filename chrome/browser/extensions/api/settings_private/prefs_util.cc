@@ -80,7 +80,6 @@
 
 #if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 #include "custom_browser/common/pref_names.h"
-#include "custom_browser/ui/mojom/browser_constants.mojom-forward.h"
 #endif
 #if BUILDFLAG(IS_CHROMEOS)
 #include "ash/constants/ash_pref_names.h"

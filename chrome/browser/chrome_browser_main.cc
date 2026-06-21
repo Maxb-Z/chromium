@@ -770,7 +770,6 @@ std::unique_ptr<content::BrowserMainParts> ChromeBrowserMainParts::Create(
   // Construct additional browser parts. Stages are called in the order in
   // which they are added.
 #if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
-  // main_parts->AddParts(std::make_unique<CustomBrowserMainExtraParts>());
   main_parts->AddParts(
       std::make_unique<custom_browser::CustomBrowserMainExtraParts>());
 #endif

@@ -43,7 +43,6 @@ def init_custom_browser():
         _PATCH_APPLIED = True
         return
 
-    # print("[Init] branding_path_component = ", branding_name)
     # Calculate the absolute path to custom (4 levels up)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     custom_module_dir = os.path.normpath(os.path.join(script_dir, "..", "..", "custom_browser","resources", "grit"))
@@ -55,7 +54,7 @@ def init_custom_browser():
         apply_patches(custom_module_dir, branding_name)
         _PATCH_APPLIED = True
     except Exception as e:
-        print(f"[Init] Failed to apply custom patches: {e}", file=sys.stderr,  paths="\n".join(sys.path))
+        print(f"[Init] Failed to apply custom patches: {e}", file=sys.stderr)
 # Run patch setup
 init_custom_browser()
 if __name__ == '__main__':

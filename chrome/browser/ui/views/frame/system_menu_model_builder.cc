@@ -28,6 +28,10 @@
 #include "ui/base/accelerators/accelerator.h"
 #include "ui/base/models/menu_model.h"
 #include "ui/menus/simple_menu_model.h"
+#include "custom_browser/buildflags.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/ui/view/nexus_native_menus.h"
+#endif
 
 #if BUILDFLAG(IS_CHROMEOS)
 #include "ash/multi_user/multi_user_window_manager.h"
@@ -76,6 +80,15 @@ void SystemMenuModelBuilder::Init() {
 }
 
 void SystemMenuModelBuilder::BuildMenu(ui::SimpleMenuModel* model) {
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // custom-browser: the kNexus chat window is is_type_normal() but tabless, so
+  // the default tab menu (New Tab / Restore Tab / Bookmark All Tabs / …) is
+  // wrong for it. Build a purpose-built Nexus menu instead; true only for the
+  // Nexus window, items route through the existing SystemMenuModelDelegate.
+  if (custom_browser::BuildNexusSystemMenu(model, browser())) {
+    return;
+  }
+#endif
   // We add the menu items in reverse order so that insertion_index never needs
   // to change.
   if (browser()->is_type_normal()) {

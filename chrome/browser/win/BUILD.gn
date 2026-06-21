@@ -3,6 +3,7 @@
 # found in the LICENSE file.
 
 import("//build/config/chrome_build.gni")
+import("//testing/test.gni")
 
 assert(is_win)
 
@@ -141,6 +142,47 @@ source_set("impl") {
     "//ui/gfx/codec",
     "//url",
   ]
+
+  if (enable_custom_browser) {
+    # Product taskbar Jump List "Tasks" for the Nexus window. Compiled into
+    # :impl so it reuses this target's existing deps (install_static, icon
+    # resources, chrome switches, policy, l10n); only the custom_browser deps
+    # are added. jumplist.cc calls it via an ENABLE_CUSTOM_BROWSER chokepoint.
+    sources += [
+      "//custom_browser/win/nexus_jumplist_task_specs.cc",
+      "//custom_browser/win/nexus_jumplist_task_specs.h",
+      "//custom_browser/win/nexus_jumplist_tasks.cc",
+      "//custom_browser/win/nexus_jumplist_tasks.h",
+    ]
+    deps += [
+      "//custom_browser:buildflags",
+      "//custom_browser/common",
+      "//custom_browser/resources:custom_browser_strings",
+    ]
+  }
+}
+
+if (enable_custom_browser) {
+  # Standalone test binary for the Nexus Jump List task logic. Compiles only
+  # the pure, string-free spec core (no ResourceBundle / install_static), so it
+  # stays lightweight. Run with:
+  #   autoninja -C out/Debug custom_browser_jumplist_unittests
+  #   out/Debug/custom_browser_jumplist_unittests
+  test("custom_browser_jumplist_unittests") {
+    sources = [
+      "//custom_browser/win/nexus_jumplist_task_specs.cc",
+      "//custom_browser/win/nexus_jumplist_task_specs.h",
+      "//custom_browser/win/nexus_jumplist_tasks_unittest.cc",
+    ]
+    deps = [
+      "//base",
+      "//base/test:run_all_unittests",
+      "//chrome/common:constants",
+      "//components/policy/core/common",
+      "//custom_browser/common",
+      "//testing/gtest",
+    ]
+  }
 }
 
 static_library("chrome_process_finder") {

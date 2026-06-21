@@ -366,7 +366,7 @@ gfx::Rect WindowSizer::GetDefaultWindowBounds(
   return gfx::Rect(kWindowTilePixels + work_area.x(),
                    kWindowTilePixels + work_area.y(), default_width,
                    default_height);
-#endif // !BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 }
 
 void WindowSizer::AdjustBoundsToBeVisibleOnDisplay(
