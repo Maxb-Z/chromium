@@ -26,6 +26,13 @@ base::RepeatingCallback<scoped_refptr<UpdateService>()> MakeFakeService(
     UpdateService::Result result,
     const std::vector<UpdateService::AppState>& states);
 
+// Like above, but additionally runs `on_register_app` with each
+// RegistrationRequest the fake service receives via RegisterApp.
+base::RepeatingCallback<scoped_refptr<UpdateService>()> MakeFakeService(
+    UpdateService::Result result,
+    const std::vector<UpdateService::AppState>& states,
+    base::RepeatingCallback<void(const RegistrationRequest&)> on_register_app);
+
 void LoadAppStates();
 
 std::string GetAppId();

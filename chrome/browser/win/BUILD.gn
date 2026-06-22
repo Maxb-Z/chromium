@@ -156,7 +156,6 @@ source_set("impl") {
     ]
     deps += [
       "//custom_browser:buildflags",
-      "//custom_browser/common",
       "//custom_browser/resources:custom_browser_strings",
     ]
   }
@@ -177,9 +176,7 @@ if (enable_custom_browser) {
     deps = [
       "//base",
       "//base/test:run_all_unittests",
-      "//chrome/common:constants",
       "//components/policy/core/common",
-      "//custom_browser/common",
       "//testing/gtest",
     ]
   }

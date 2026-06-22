@@ -171,15 +171,18 @@ bool UpdateTaskCategory(
     policy::IncognitoModeAvailability incognito_availability,
     const base::FilePath& cmd_line_profile_dir) {
 #if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
-  // custom-browser: replace the default New Window / New Incognito Window
-  // "Tasks" with product-appropriate ones (New <Product> window / New browser
-  // window / New Incognito Window). Product/app-id scoped, built off the UI
-  // thread — the helper takes only these precomputed inputs.
+  // custom-browser: the Nexus product replaces the default New Window / New
+  // Incognito Window "Tasks" — currently with nothing (see
+  // BuildNexusJumpListTaskSpecs), so the taskbar Tasks category is empty.
+  // Product/app-id scoped, built off the UI thread — the helper takes only
+  // these precomputed inputs. When the product task list is empty we skip
+  // AddTasks so we never hand AddUserTasks an empty collection; the committed
+  // list simply omits the Tasks category (clearing any stale items).
   {
     ShellLinkItemList items;
     if (custom_browser::BuildNexusJumpListTasks(incognito_availability,
                                                 cmd_line_profile_dir, &items)) {
-      return jumplist_updater->AddTasks(items);
+      return items.empty() || jumplist_updater->AddTasks(items);
     }
   }
 #endif
@@ -617,12 +620,27 @@ void JumpList::PostRunUpdate() {
         std::move(recently_closed_icons_);
   }
 
+  // custom-browser: the Nexus product surfaces no dynamic browsing content in
+  // the taskbar Jump List — no "Most Visited" or "Recently Closed" pages (and
+  // no "Tasks"; see UpdateTaskCategory). Feed empty page lists into the update:
+  // AddCustomCategory() omits an empty category (no bare header), while the
+  // existing icon-cleanup and CommitUpdate() path still runs so any previously
+  // shown entries are cleared. The should_update_ flags and icon bookkeeping
+  // are left intact.
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  ShellLinkItemList most_visited_to_show;
+  ShellLinkItemList recently_closed_to_show;
+#else
+  const ShellLinkItemList& most_visited_to_show = most_visited_pages_;
+  const ShellLinkItemList& recently_closed_to_show = recently_closed_pages_;
+#endif
+
   // Parameter evaluation order is unspecified in C++. Do the first bind and
   // then move it into PostTaskAndReply to ensure the pointer value is obtained
   // before std::move() is called.
   auto run_update = base::BindOnce(
-      &JumpList::RunUpdateJumpList, app_id_, profile_dir, most_visited_pages_,
-      recently_closed_pages_, GetCmdLineProfileDir(),
+      &JumpList::RunUpdateJumpList, app_id_, profile_dir, most_visited_to_show,
+      recently_closed_to_show, GetCmdLineProfileDir(),
       most_visited_should_update_, recently_closed_should_update_,
       incognito_availability, update_transaction.get());
 

@@ -7720,6 +7720,9 @@ test("unit_tests") {
     if (is_mac) {
       deps += [ "//chrome/updater:browser_sources" ]
     }
+    if (is_win && enable_custom_browser) {
+      deps += [ "//custom_browser/common:common" ]
+    }
   }
 
   if (is_win || is_mac || is_linux) {

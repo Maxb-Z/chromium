@@ -28,9 +28,13 @@ namespace {
 
 class FakeUpdateService : public UpdateService {
  public:
-  FakeUpdateService(UpdateService::Result result,
-                    const std::vector<UpdateService::AppState>& states)
-      : result_(result), states_(states) {}
+  FakeUpdateService(
+      UpdateService::Result result,
+      const std::vector<UpdateService::AppState>& states,
+      base::RepeatingCallback<void(const RegistrationRequest&)> on_register_app)
+      : result_(result),
+        states_(states),
+        on_register_app_(std::move(on_register_app)) {}
 
   // Overrides for UpdateService
   void GetVersion(
@@ -43,6 +47,9 @@ class FakeUpdateService : public UpdateService {
   }
   void RegisterApp(const RegistrationRequest& request,
                    base::OnceCallback<void(int)> callback) override {
+    if (on_register_app_) {
+      on_register_app_.Run(request);
+    }
     std::move(callback).Run(0);
   }
   void GetAppStates(base::OnceCallback<void(const std::vector<AppState>&)>
@@ -114,6 +121,8 @@ class FakeUpdateService : public UpdateService {
 
   const Result result_;
   const std::vector<UpdateService::AppState> states_;
+  const base::RepeatingCallback<void(const RegistrationRequest&)>
+      on_register_app_;
 };
 
 }  // namespace
@@ -121,13 +130,23 @@ class FakeUpdateService : public UpdateService {
 base::RepeatingCallback<scoped_refptr<UpdateService>()> MakeFakeService(
     UpdateService::Result result,
     const std::vector<UpdateService::AppState>& states) {
+  return MakeFakeService(result, states, base::NullCallback());
+}
+
+base::RepeatingCallback<scoped_refptr<UpdateService>()> MakeFakeService(
+    UpdateService::Result result,
+    const std::vector<UpdateService::AppState>& states,
+    base::RepeatingCallback<void(const RegistrationRequest&)> on_register_app) {
   return base::BindRepeating(
       [](UpdateService::Result result,
-         const std::vector<UpdateService::AppState>& states) {
+         const std::vector<UpdateService::AppState>& states,
+         const base::RepeatingCallback<void(const RegistrationRequest&)>&
+             on_register_app) {
         return static_cast<scoped_refptr<UpdateService>>(
-            base::MakeRefCounted<FakeUpdateService>(result, states));
+            base::MakeRefCounted<FakeUpdateService>(result, states,
+                                                    on_register_app));
       },
-      result, states);
+      result, states, on_register_app);
 }
 
 base::ScopedClosureRunner OverrideService(
