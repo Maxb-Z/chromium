@@ -16,7 +16,11 @@
 #include "base/files/file_util.h"
 #include "base/logging.h"
 #include "base/version.h"
+#include "chrome/common/buildflags.h"
 #include "chrome/installer/util/util_constants.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/common/product_version.h"
+#endif
 
 namespace installer {
 
@@ -45,6 +49,10 @@ DirectorySet GetOldVersionDirectories(const base::FilePath& install_dir) {
       GetExecutableVersionDirName(install_dir.Append(kChromeNewExe));
   const base::FilePath chrome_exe_version_dir_name =
       GetExecutableVersionDirName(install_dir.Append(kChromeExe));
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  const base::FilePath custom_version_dir_name =
+      base::FilePath::FromASCII(custom_browser::kCustomBrowserProductVersion);
+#endif
 
   DirectorySet directories;
   base::FileEnumerator enum_directories(install_dir, false,
@@ -57,7 +65,11 @@ DirectorySet GetOldVersionDirectories(const base::FilePath& install_dir) {
     if (version.IsValid() &&
         version.components().size() == kNumChromeVersionComponents &&
         directory_name != new_chrome_exe_version_dir_name &&
-        directory_name != chrome_exe_version_dir_name) {
+        directory_name != chrome_exe_version_dir_name
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+        && directory_name != custom_version_dir_name
+#endif
+    ) {
       directories.insert(directory_name);
     }
   }

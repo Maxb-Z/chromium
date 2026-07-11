@@ -71,6 +71,12 @@
 #include "chrome/browser/chrome_content_browser_client_binder_policies.h"
 #include "chrome/browser/chrome_content_browser_client_navigation_throttles.h"
 #include "chrome/browser/chrome_content_browser_client_parts.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "content/public/browser/navigation_throttle.h"
+#include "content/public/browser/navigation_throttle_registry.h"
+#include "custom_browser/common/product_version.h"
+#include "custom_browser/chromium_hooks/hook_dispatcher.h"
+#endif
 #include "chrome/browser/content_settings/cookie_settings_factory.h"
 #include "chrome/browser/content_settings/host_content_settings_map_factory.h"
 #include "chrome/browser/contextual_tasks/contextual_tasks_ui_service.h"
@@ -1286,6 +1292,14 @@ base::FilePath GetModulePath(std::wstring_view module_name) {
   // Look for the module in a versioned sub-directory of the current
   // executable's directory and return the path if it can be read. This is the
   // expected location of modules for proper installs.
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  const base::FilePath custom_module_path =
+      exe_dir.AppendASCII(custom_browser::kCustomBrowserProductVersion)
+          .Append(module_name);
+  if (base::PathExists(custom_module_path)) {
+    return custom_module_path;
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
   const base::FilePath module_path =
       exe_dir.AppendASCII(chrome::kChromeVersion).Append(module_name);
   if (base::PathExists(module_path)) {
@@ -5581,6 +5595,9 @@ void ChromeContentBrowserClient::RemovePresentationObserver(
 void ChromeContentBrowserClient::CreateThrottlesForNavigation(
     content::NavigationThrottleRegistry& registry) {
   CreateAndAddChromeThrottlesForNavigation(registry);
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  custom_browser::AppendNavigationThrottles(registry);
+#endif
 }
 
 std::vector<std::unique_ptr<content::CommitDeferringCondition>>

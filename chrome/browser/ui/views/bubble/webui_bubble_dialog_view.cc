@@ -7,6 +7,7 @@
 #include <optional>
 
 #include "build/build_config.h"
+#include "custom_browser/chromium_hooks/hook_dispatcher.h"
 #include "components/input/native_web_keyboard_event.h"
 #include "content/public/browser/keyboard_event_processing_result.h"
 #include "content/public/browser/visibility.h"
@@ -271,7 +272,10 @@ gfx::Rect WebUIBubbleDialogView::GetAnchorRect() const {
   if (bubble_anchor_) {
     return bubble_anchor_.value();
   }
-  return BubbleDialogDelegateView::GetAnchorRect();
+  gfx::Rect rect = BubbleDialogDelegateView::GetAnchorRect();
+  auto override_rect =
+      custom_browser::OnGetBubbleAnchorRect(GetAnchorView(), rect);
+  return override_rect.value_or(rect);
 }
 
 std::optional<int> WebUIBubbleDialogView::NonClientHitTest(

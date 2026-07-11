@@ -27,6 +27,7 @@ import("//services/network/public/cpp/features.gni")
 import("//testing/libfuzzer/fuzzer_test.gni")
 import("//third_party/blink/public/public_features.gni")
 import("//tools/ipc_fuzzer/ipc_fuzzer.gni")
+import("//custom_browser/ui/custom_browser_view.gni")
 
 if (is_mac) {
   import("//content/public/app/mac_helpers.gni")
@@ -2603,6 +2604,11 @@ source_set("browser") {
       "devtools/protocol/bluetooth_emulation_handler.cc",
       "devtools/protocol/bluetooth_emulation_handler.h",
     ]
+  }
+
+
+  if (enable_custom_browser) {
+    deps += [ "//custom_browser/chromium_hooks:hook_core" ]
   }
 
   # TODO(crbug.com/40226169): Remove `permissions_common`.

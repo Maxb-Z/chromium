@@ -34,6 +34,20 @@ const kShowErrorAllowed = loadTimeData.getBoolean('showErrorAllowed');
 // recorded.
 const kEnableUnresponsiveMetrics =
     loadTimeData.getBoolean('enableWebClientUnresponsiveMetrics');
+const kEnableNexusTrace = loadTimeData.getBoolean('isNexusMode');
+
+function nexusTrace(message: string, details?: unknown): void {
+  if (!kEnableNexusTrace) {
+    return;
+  }
+
+  if (details === undefined) {
+    console.info(`[NexusTrace][HostUI] ${message}`);
+    return;
+  }
+
+  console.info(`[NexusTrace][HostUI] ${message}`, details);
+}
 
 interface PageElementTypes {
   panelContainer: HTMLElement;
@@ -302,6 +316,11 @@ export class GlicAppController implements WebviewDelegate, ApiHostEmbedder {
     if (this.state === newState) {
       return;
     }
+    nexusTrace('state transition', {
+      from: this.state,
+      to: newState,
+      panelStateKind: this.panelStateKind,
+    });
     if (this.state) {
       this.states.get(this.state)!.onExit?.call(this);
     }
@@ -486,6 +505,7 @@ export class GlicAppController implements WebviewDelegate, ApiHostEmbedder {
   }
 
   private async load(): Promise<void> {
+    nexusTrace('load start');
     // profileReadyState isn't available right away. Wait until it's ready.
     this.trackLoadingStageStart(LoadingStage.AWAITING_PROFILE_READY);
     await this.profileReadyInitialState.promise;
@@ -493,6 +513,7 @@ export class GlicAppController implements WebviewDelegate, ApiHostEmbedder {
 
     const readyState = this.profileReadyState;
     assert(readyState !== undefined);
+    nexusTrace('profile ready state available', {readyState});
     switch (readyState) {
       case ProfileReadyState.kIneligible:
       case ProfileReadyState.kUnknownError:
@@ -519,6 +540,7 @@ export class GlicAppController implements WebviewDelegate, ApiHostEmbedder {
         await this.browserProxy.glicPreloadHandler.prepareForClient() :
         await this.browserProxy.pageHandler.prepareForClient();
     this.trackLoadingStageEnd();
+    nexusTrace('prepareForClient resolved', {result});
 
     switch (result) {
       case PrepareForClientResult.kSuccess:
@@ -538,6 +560,7 @@ export class GlicAppController implements WebviewDelegate, ApiHostEmbedder {
     // Load the web client only after cookie sync is complete.
     this.trackLoadingStageStart(LoadingStage.LOADING_WEB_CLIENT);
     this.destroyWebview();
+    nexusTrace('creating new WebviewController');
     this.webview = new WebviewController(
         $.webviewContainer, this.browserProxy, this, this,
         this.webviewPersistentState);
@@ -679,6 +702,9 @@ export class GlicAppController implements WebviewDelegate, ApiHostEmbedder {
   // Called when the notifyPanelWillOpen promise resolves to open the panel
   // when triggered from the browser.
   webClientReady(): void {
+    nexusTrace('webClientReady callback', {
+      state: this.state,
+    });
     if (this.state === WebUiState.kBeginLoad ||
         this.state === WebUiState.kFinishLoading ||
         this.state === WebUiState.kWarmed) {
@@ -728,6 +754,10 @@ export class GlicAppController implements WebviewDelegate, ApiHostEmbedder {
   }
 
   webClientStateChanged(state: WebClientState): void {
+    nexusTrace('webClientStateChanged', {
+      state,
+      controllerState: this.state,
+    });
     switch (state) {
       case WebClientState.RESPONSIVE:
         // If we're still in a loading state, let it transition naturally

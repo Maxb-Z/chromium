@@ -298,8 +298,30 @@ void ChromeDevToolsManagerDelegate::HandleCommand(
   it->second->HandleCommand(message, std::move(callback));
 }
 
+namespace {
+
+// Reports the glic `<webview>` guest as a regular page so DevTools clients
+// (notably Playwright, which only wraps `type: "page"` targets as Page
+// objects) can attach to it through the browser-scope CDP session without
+// needing a per-target reconnect or auto-attach patching. Narrowed to guests
+// embedded in `chrome://glic/...` so non-Nexus webviews are unaffected.
+bool IsNexusGlicGuest(content::WebContents* web_contents) {
+  content::WebContents* outer = web_contents->GetOuterWebContents();
+  if (!outer) {
+    return false;
+  }
+  const GURL& url = outer->GetLastCommittedURL();
+  return url.SchemeIs("chrome") && url.host() == "glic";
+}
+
+}  // namespace
+
 std::string ChromeDevToolsManagerDelegate::GetTargetType(
     content::WebContents* web_contents) {
+  if (IsNexusGlicGuest(web_contents)) {
+    return DevToolsAgentHost::kTypePage;
+  }
+
   if (webui_browser::IsBrowserUIWebContents(web_contents)) {
     return DevToolsAgentHost::kTypeBrowserUI;
   }
@@ -327,6 +349,13 @@ std::string ChromeDevToolsManagerDelegate::GetTargetType(
 
 std::optional<bool> ChromeDevToolsManagerDelegate::ShouldReportAsTabTarget(
     content::WebContents* web_contents) {
+  if (IsNexusGlicGuest(web_contents)) {
+    // Force the non-MPArch guest path in RenderFrameDevToolsAgentHost::GetType
+    // to fall through to the delegate's GetTargetType() (which returns
+    // kTypePage above) instead of hard-coding kTypeGuest.
+    return true;
+  }
+
   if (webui_browser::IsBrowserUIWebContents(web_contents)) {
     // Return false for browser UI so its WebContents is not reported as Tab.
     // Browser UI is not a Tab and can not be interacted as a Tab. Reporting

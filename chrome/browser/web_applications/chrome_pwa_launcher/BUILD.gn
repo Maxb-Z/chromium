@@ -57,6 +57,7 @@ source_set("util") {
     "//chrome/common:non_code_constants",
     "//chrome/installer/util:with_no_strings",
     "//components/version_info:generate_version_info",
+    "//custom_browser/common:common",
   ]
 }
 
@@ -74,6 +75,7 @@ source_set("unit_tests") {
     "//chrome/browser/web_applications",
     "//chrome/test:test_support",
     "//components/version_info:generate_version_info",
+    "//custom_browser/common:common",
     "//content/test:test_support",
     "//testing/gtest",
   ]

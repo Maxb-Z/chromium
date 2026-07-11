@@ -6,7 +6,12 @@
 
 #include <stdint.h>
 
+#include "base/base_paths.h"
+#include "base/files/file_enumerator.h"
+#include "base/files/file_util.h"
 #include "base/functional/bind.h"
+#include "base/path_service.h"
+#include "base/strings/string_util.h"
 #include "base/task/task_traits.h"
 #include "base/task/thread_pool.h"
 #include "base/threading/scoped_blocking_call.h"
@@ -90,6 +95,84 @@ void DetectSafariProfiles(
 }
 #endif  // BUILDFLAG(IS_MAC)
 
+#if BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || \
+    (BUILDFLAG(IS_LINUX) && !BUILDFLAG(IS_CHROMEOS))
+base::FilePath GetChromeUserDataPath() {
+#if BUILDFLAG(IS_WIN)
+  base::FilePath local_app_data_dir;
+  if (!base::PathService::Get(base::DIR_LOCAL_APP_DATA, &local_app_data_dir))
+    return base::FilePath();
+  return local_app_data_dir.Append(FILE_PATH_LITERAL("Google"))
+      .Append(FILE_PATH_LITERAL("Chrome"))
+      .Append(FILE_PATH_LITERAL("User Data"));
+#elif BUILDFLAG(IS_MAC)
+  base::FilePath home_dir;
+  if (!base::PathService::Get(base::DIR_HOME, &home_dir))
+    return base::FilePath();
+  return home_dir.Append(FILE_PATH_LITERAL("Library"))
+      .Append(FILE_PATH_LITERAL("Application Support"))
+      .Append(FILE_PATH_LITERAL("Google"))
+      .Append(FILE_PATH_LITERAL("Chrome"));
+#elif BUILDFLAG(IS_LINUX)
+  base::FilePath home_dir;
+  if (!base::PathService::Get(base::DIR_HOME, &home_dir))
+    return base::FilePath();
+  return home_dir.Append(FILE_PATH_LITERAL(".config"))
+      .Append(FILE_PATH_LITERAL("google-chrome"));
+#else
+  return base::FilePath();
+#endif
+}
+
+base::FilePath GetChromeProfilePath() {
+  base::FilePath user_data_dir = GetChromeUserDataPath();
+  if (user_data_dir.empty() || !base::PathExists(user_data_dir))
+    return base::FilePath();
+
+  base::FilePath default_profile =
+      user_data_dir.Append(FILE_PATH_LITERAL("Default"));
+  if (base::PathExists(default_profile))
+    return default_profile;
+
+  base::FileEnumerator enumerator(user_data_dir, false,
+                                  base::FileEnumerator::DIRECTORIES);
+  for (base::FilePath profile_path = enumerator.Next();
+       !profile_path.empty(); profile_path = enumerator.Next()) {
+    std::string name = profile_path.BaseName().AsUTF8Unsafe();
+    if (base::StartsWith(name, "Profile ", base::CompareCase::SENSITIVE))
+      return profile_path;
+  }
+
+  return base::FilePath();
+}
+
+void DetectChromeProfiles(
+    std::vector<user_data_importer::SourceProfile>* profiles) {
+  base::ScopedBlockingCall scoped_blocking_call(FROM_HERE,
+                                                base::BlockingType::MAY_BLOCK);
+
+  base::FilePath profile_path = GetChromeProfilePath();
+  if (profile_path.empty())
+    return;
+
+  uint16_t items = user_data_importer::NONE;
+  if (base::PathExists(profile_path.Append(FILE_PATH_LITERAL("History"))))
+    items |= user_data_importer::HISTORY;
+  if (base::PathExists(profile_path.Append(FILE_PATH_LITERAL("Bookmarks"))))
+    items |= user_data_importer::FAVORITES;
+
+  if (items == user_data_importer::NONE)
+    return;
+
+  user_data_importer::SourceProfile chrome;
+  chrome.importer_name = l10n_util::GetStringUTF16(IDS_IMPORT_FROM_CHROME);
+  chrome.importer_type = user_data_importer::TYPE_CHROME;
+  chrome.source_path = profile_path;
+  chrome.services_supported = items;
+  profiles->push_back(chrome);
+}
+#endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_MAC) || (BUILDFLAG(IS_LINUX) && !BUILDFLAG(IS_CHROMEOS))
+
 // |locale|: The application locale used for lookups in Firefox's
 // locale-specific search engines feature (see firefox_importer.cc for
 // details).
@@ -171,20 +254,34 @@ std::vector<user_data_importer::SourceProfile> DetectSourceProfilesWorker(
   if (shell_integration::IsFirefoxDefaultBrowser()) {
     DetectFirefoxProfiles(locale, &profiles);
     DetectBuiltinWindowsProfiles(&profiles);
+    DetectChromeProfiles(&profiles);
   } else {
     DetectBuiltinWindowsProfiles(&profiles);
     DetectFirefoxProfiles(locale, &profiles);
+    DetectChromeProfiles(&profiles);
   }
 #elif BUILDFLAG(IS_MAC)
   if (shell_integration::IsFirefoxDefaultBrowser()) {
     DetectFirefoxProfiles(locale, &profiles);
     DetectSafariProfiles(&profiles);
+    DetectChromeProfiles(&profiles);
   } else {
     DetectSafariProfiles(&profiles);
     DetectFirefoxProfiles(locale, &profiles);
+    DetectChromeProfiles(&profiles);
   }
 #else
-  DetectFirefoxProfiles(locale, &profiles);
+  if (shell_integration::IsFirefoxDefaultBrowser()) {
+    DetectFirefoxProfiles(locale, &profiles);
+#if BUILDFLAG(IS_LINUX) && !BUILDFLAG(IS_CHROMEOS)
+    DetectChromeProfiles(&profiles);
+#endif
+  } else {
+#if BUILDFLAG(IS_LINUX) && !BUILDFLAG(IS_CHROMEOS)
+    DetectChromeProfiles(&profiles);
+#endif
+    DetectFirefoxProfiles(locale, &profiles);
+  }
 #endif
   if (include_interactive_profiles) {
     user_data_importer::SourceProfile bookmarks_profile;

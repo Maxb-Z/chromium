@@ -193,6 +193,9 @@ static_library("with_no_strings") {
       "//rlz/buildflags",
       "//third_party/icu",
     ]
+    if (enable_custom_browser) {
+      deps += [ "//custom_browser/common:common" ]
+    }
 
     libs = [
       "urlmon.lib",

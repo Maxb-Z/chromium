@@ -98,6 +98,25 @@ declare_args() {
 }
 
 declare_args() {
+  # Whether to enable the custom browser.
+  enable_custom_browser = false
+}
+
+declare_args() {
+  # The product name used in various places including installer file names.
+  custom_browser_branding = enable_custom_browser &&
+                            branding_path_component != "chromium" &&
+                            branding_path_component != ""
+}
+
+if (enable_custom_browser) {
+  _custom_browser_override_copy =
+      exec_script("//custom_browser/chromium_overrides/override.py",
+                  [ branding_path_component ],
+                  "string")
+}
+
+declare_args() {
   # The path to the BRANDING file in chrome/app/theme.
   branding_file_path = "//chrome/app/theme/$branding_path_component/BRANDING"
 }

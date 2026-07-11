@@ -25,6 +25,7 @@
 #include "chrome/browser/prefs/chrome_pref_service_factory.h"
 #include "chrome/common/chrome_paths.h"
 #include "chrome/common/chrome_switches.h"
+#include "chrome/common/buildflags.h"
 #include "chrome/installer/util/initial_preferences.h"
 #include "components/content_settings/core/common/features.h"
 #include "components/network_time/network_time_tracker.h"
@@ -41,6 +42,10 @@
 #include "services/network/public/cpp/network_switches.h"
 #include "services/network/public/cpp/shared_url_loader_factory.h"
 #include "ui/base/resource/resource_bundle.h"
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/chromium_overrides/feature_list_override.h"
+#endif
 
 #if BUILDFLAG(IS_WIN)
 #include "chrome/installer/util/google_update_settings.h"
@@ -90,6 +95,9 @@ GetSwitchDependentFeatureOverrides(const base::CommandLine& command_line) {
       overrides.emplace_back(info.feature, info.override_state);
     }
   }
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  custom_browser::AppendFeatureListOverrides(&overrides);
+#endif
   return overrides;
 }
 

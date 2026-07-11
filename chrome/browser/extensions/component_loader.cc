@@ -38,6 +38,9 @@
 #include "chrome/grit/browser_resources.h"
 #include "chrome/grit/component_extension_resources.h"
 #include "chrome/grit/generated_resources.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/extensions/custom_component_extensions.h"
+#endif
 #include "components/crx_file/id_util.h"
 #include "components/version_info/version_info.h"
 #include "content/public/browser/browser_thread.h"
@@ -245,7 +248,20 @@ ExtensionId ComponentLoader::Add(int manifest_resource_id,
   std::string manifest_contents =
       ui::ResourceBundle::GetSharedInstance().LoadDataResourceString(
           manifest_resource_id);
-  return Add(manifest_contents, root_directory, true);
+  std::optional<base::DictValue> manifest = ParseManifest(manifest_contents);
+  if (!manifest) {
+    return std::string();
+  }
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  if (custom_browser::IsCustomComponentExtensionAllowlisted(
+          manifest_resource_id)) {
+    custom_browser::LocalizeCustomComponentManifest(manifest_resource_id,
+                                                    &manifest.value());
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+
+  return Add(std::move(*manifest), root_directory, true);
 }
 
 ExtensionId ComponentLoader::Add(base::DictValue manifest,
@@ -525,6 +541,23 @@ void ComponentLoader::AddDefaultComponentExtensions(
 #endif  // BUILDFLAG(ENABLE_PDF)
   }
 
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  if (!skip_session_components) {
+    for (const auto& custom_extension :
+         custom_browser::GetCustomComponentExtensions()) {
+      if (custom_extension.has_background_page) {
+        continue;
+      }
+      if (!custom_browser::IsCustomComponentExtensionEnabled(
+              profile_->GetPrefs(), custom_extension)) {
+        continue;
+      }
+      Add(custom_extension.manifest_resource_id,
+          base::FilePath(custom_extension.root_relative_path));
+    }
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+
   AddDefaultComponentExtensionsWithBackgroundPages(skip_session_components);
 }
 
@@ -542,6 +575,21 @@ void ComponentLoader::AddDefaultComponentExtensionsForKioskMode(
   // Add virtual keyboard.
   AddKeyboardApp();
 #endif  // BUILDFLAG(IS_CHROMEOS)
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  for (const auto& custom_extension :
+       custom_browser::GetCustomComponentExtensions()) {
+    if (custom_extension.has_background_page) {
+      continue;
+    }
+    if (!custom_browser::IsCustomComponentExtensionEnabled(
+            profile_->GetPrefs(), custom_extension)) {
+      continue;
+    }
+    Add(custom_extension.manifest_resource_id,
+        base::FilePath(custom_extension.root_relative_path));
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 
   AddDefaultComponentExtensionsWithBackgroundPagesForKioskMode();
 
@@ -579,6 +627,23 @@ void ComponentLoader::AddDefaultComponentExtensionsWithBackgroundPages(
   if (should_disable_background_extensions) {
     return;
   }
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  if (!skip_session_components) {
+    for (const auto& custom_extension :
+         custom_browser::GetCustomComponentExtensions()) {
+      if (!custom_extension.has_background_page) {
+        continue;
+      }
+      if (!custom_browser::IsCustomComponentExtensionEnabled(
+              profile_->GetPrefs(), custom_extension)) {
+        continue;
+      }
+      Add(custom_extension.manifest_resource_id,
+          base::FilePath(custom_extension.root_relative_path));
+    }
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 
   if (!skip_session_components) {
 #if BUILDFLAG(IS_CHROMEOS)
@@ -638,6 +703,21 @@ void ComponentLoader::
 #if BUILDFLAG(ENABLE_HANGOUT_SERVICES_EXTENSION)
   AddHangoutServicesExtension();
 #endif  // BUILDFLAG(ENABLE_HANGOUT_SERVICES_EXTENSION)
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  for (const auto& custom_extension :
+       custom_browser::GetCustomComponentExtensions()) {
+    if (!custom_extension.has_background_page) {
+      continue;
+    }
+    if (!custom_browser::IsCustomComponentExtensionEnabled(
+            profile_->GetPrefs(), custom_extension)) {
+      continue;
+    }
+    Add(custom_extension.manifest_resource_id,
+        base::FilePath(custom_extension.root_relative_path));
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 }
 
 void ComponentLoader::UnloadComponent(ComponentExtensionInfo* component) {

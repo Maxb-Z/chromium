@@ -12,6 +12,7 @@
 #include "build/build_config.h"
 #include "build/chromecast_buildflags.h"
 #include "content/common/content_export.h"
+#include "content/public/common/buildflags.h"
 #include "third_party/blink/public/common/messaging/string_message_codec.h"
 #include "third_party/blink/public/common/messaging/web_message_port.h"
 
@@ -44,6 +45,15 @@ class CONTENT_EXPORT MessagePortProvider {
                                  const url::Origin* source_origin,
                                  const url::Origin* target_origin,
                                  const blink::WebMessagePayload& data);
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  static void PostMessageToFrame(
+      Page& page,
+      const url::Origin* source_origin,
+      const url::Origin* target_origin,
+      const blink::WebMessagePayload& data,
+      std::vector<blink::MessagePortDescriptor> ports);
+#endif
 
 #if BUILDFLAG(IS_ANDROID)
   // TODO(449581913): Rather than processing serialized strings here, we should

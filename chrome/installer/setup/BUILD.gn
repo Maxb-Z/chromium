@@ -141,6 +141,12 @@ if (is_win) {
   process_version_rc_template("setup_exe_version") {
     template_file = "setup_exe_version.rc.version"
     output = "$target_gen_dir/setup_exe_version.rc"
+    if (enable_custom_browser) {
+      sources = [
+        "$root_gen_dir/custom_browser/common/generated/custom_browser_version.txt",
+      ]
+      deps = [ "//custom_browser/common:generate_product_version" ]
+    }
   }
 
   # This test covers the mini installer and setup tests.

@@ -123,6 +123,7 @@ VisitSource VisitSourceFromInt(int value) {
     case SOURCE_SAFARI_IMPORTED:
     case SOURCE_ACTOR:
     case SOURCE_OS_MIGRATION_IMPORTED:
+    case SOURCE_CHROME_IMPORTED:
       return converted;
   }
   // In cases of database corruption, SOURCE_BROWSED is a safe default value.

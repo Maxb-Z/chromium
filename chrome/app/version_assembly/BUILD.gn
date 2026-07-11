@@ -2,19 +2,33 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/config/chrome_build.gni")
 import("//build/config/win/manifest.gni")
 import("//build/util/process_version.gni")
-import("//chrome/version.gni")
 
 version_assembly_output_file = "$target_gen_dir/version_assembly.manifest"
+
+_version_sources = [ "//chrome/VERSION" ]
+if (enable_custom_browser) {
+  _custom_browser_version_file =
+      "$root_gen_dir/custom_browser/common/generated/custom_browser_version.txt"
+  _version_sources += [ _custom_browser_version_file ]
+  _version_assembly_custom_manifest =
+      "$root_build_dir/custom_browser_version.manifest"
+  _version_assembly_manifest_stamp =
+      "$target_gen_dir/custom_browser_version_manifest.stamp"
+}
 
 # Generates a manifest file with the current build's version information.
 process_version("chrome_exe_version_manifest") {
   process_only = true
   visibility = [ ":*" ]
   template_file = "chrome_exe_manifest.template"
-  sources = [ "//chrome/VERSION" ]
+  sources = _version_sources
   output = version_assembly_output_file
+  if (enable_custom_browser) {
+    deps = [ "//custom_browser/common:generate_product_version" ]
+  }
 }
 
 # Generates the manifest for chrome.exe. This is the normal manifest stuff plus
@@ -35,11 +49,46 @@ windows_manifest("chrome_exe_manifest") {
   public_deps = [ ":chrome_exe_version_manifest" ]
 }
 
-# Generates the manifest for the version assembly, which is the versioned
-# directory where Chrome finds chrome.dll.
-process_version("version_assembly_manifest") {
-  template_file = "version_assembly_manifest.template"
-  sources = [ "//chrome/VERSION" ]
-  output = "$root_build_dir/$chrome_version_full.manifest"
-  process_only = true
+if (enable_custom_browser) {
+  # Generates the manifest for the version assembly, which is the versioned
+  # directory where Chrome finds chrome.dll.
+  process_version("version_assembly_manifest_base") {
+    template_file = "version_assembly_manifest.template"
+    sources = _version_sources
+    output = _version_assembly_custom_manifest
+    process_only = true
+    deps = [ "//custom_browser/common:generate_product_version" ]
+  }
+
+  action("version_assembly_manifest") {
+    script = "//custom_browser/common/scripts/copy_version_assembly_manifest.py"
+    inputs = [
+      _version_assembly_custom_manifest,
+      _custom_browser_version_file,
+    ]
+    outputs = [ _version_assembly_manifest_stamp ]
+    args = [
+      "--version-file",
+      rebase_path(_custom_browser_version_file, root_build_dir),
+      "--input-manifest",
+      rebase_path(_version_assembly_custom_manifest, root_build_dir),
+      "--output-dir",
+      rebase_path(root_build_dir, root_build_dir),
+      "--stamp",
+      rebase_path(_version_assembly_manifest_stamp, root_build_dir),
+    ]
+    deps = [
+      ":version_assembly_manifest_base",
+      "//custom_browser/common:generate_product_version",
+    ]
+  }
+} else {
+  # Generates the manifest for the version assembly, which is the versioned
+  # directory where Chrome finds chrome.dll.
+  process_version("version_assembly_manifest") {
+    template_file = "version_assembly_manifest.template"
+    sources = _version_sources
+    output = "$root_build_dir/$chrome_version_full.manifest"
+    process_only = true
+  }
 }

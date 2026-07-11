@@ -71,6 +71,10 @@
 #include "chrome/browser/ui/webui/new_tab_page/new_tab_page_ui.h"
 #endif  // BUILDFLAG(ENABLE_WEBUI_NTP)
 
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/ui/web_ui/custom_browser_webui.h"
+#endif
+
 #if BUILDFLAG(ENABLE_WEBUI_CERTIFICATE_VIEWER)
 #include "chrome/browser/ui/webui/certificate_viewer/certificate_viewer_ui.h"
 #endif
@@ -312,6 +316,10 @@ void RegisterChromeWebUIConfigs() {
 
 #if BUILDFLAG(ENABLE_WEBUI_CERTIFICATE_VIEWER)
   map.AddWebUIConfig(std::make_unique<CertificateViewerUIConfig>());
+#endif
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  map.AddWebUIConfig(std::make_unique<CustomBrowserWebUIConfig>());
 #endif
 
 #if BUILDFLAG(IS_ANDROID)

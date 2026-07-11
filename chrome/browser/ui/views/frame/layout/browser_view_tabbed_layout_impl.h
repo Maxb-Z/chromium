@@ -20,6 +20,9 @@ namespace views {
 class View;
 }
 
+namespace custom_browser {
+class CustomBrowserViewLayout;
+}  // namespace custom_browser
 // Provides a specialized layout implementation for normal tabbed browsers.
 // Should not be used for other types of browsers.
 class BrowserViewTabbedLayoutImpl : public BrowserViewLayoutImpl {
@@ -54,6 +57,7 @@ class BrowserViewTabbedLayoutImpl : public BrowserViewLayoutImpl {
   // Gets the amount of padding to place between
   int GetMinimumGrabHandlePadding() const;
 
+  friend class custom_browser::CustomBrowserViewLayout;
   // Returns the minimum size of all toolbar-height content except the side
   // panel.
   gfx::Size GetMinimumMainAreaSize(const BrowserLayoutParams& params) const;

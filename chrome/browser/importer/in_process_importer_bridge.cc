@@ -52,6 +52,8 @@ history::VisitSource ConvertImporterVisitSourceToHistoryVisitSource(
       return history::SOURCE_IE_IMPORTED;
     case user_data_importer::VISIT_SOURCE_SAFARI_IMPORTED:
       return history::SOURCE_SAFARI_IMPORTED;
+    case user_data_importer::VISIT_SOURCE_CHROME_IMPORTED:
+      return history::SOURCE_CHROME_IMPORTED;
   }
   NOTREACHED();
 }

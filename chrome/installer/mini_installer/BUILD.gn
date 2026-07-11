@@ -81,6 +81,12 @@ source_set("lib") {
 process_version_rc_template("version") {
   template_file = "mini_installer_exe_version.rc.version"
   output = "$root_out_dir/mini_installer_exe_version.rc"
+  if (enable_custom_browser) {
+    sources = [
+      "$root_gen_dir/custom_browser/common/generated/custom_browser_version.txt",
+    ]
+    deps = [ "//custom_browser/common:generate_product_version" ]
+  }
 }
 
 source_set("unit_tests") {
@@ -149,11 +155,12 @@ action("mini_installer_archive") {
     "$root_out_dir/chrome_elf.dll",
     "$root_out_dir/chrome.exe",
     "$root_out_dir/locales/en-US.pak",
+    "$root_out_dir/custom_browser_strings_en-US.pak",
     "$root_out_dir/setup.exe",
+    "$root_gen_dir/custom_browser/common/generated/custom_browser_version.txt",
     "//chrome/tools/build/win/makecab.py",
     release_file,
   ]
-
   outputs = [
     "$root_out_dir/chrome.7z",
     "$root_out_dir/chrome.packed.7z",
@@ -183,6 +190,12 @@ action("mini_installer_archive") {
     # Optional argument for verbose archiving output.
     #"--verbose",
   ]
+  args += [
+    "--custom_browser_version_file",
+    rebase_path(
+        "$root_gen_dir/custom_browser/common/generated/custom_browser_version.txt",
+        root_build_dir),
+  ]
 
   deps = [
     ":chrome_runtime_deps",
@@ -194,6 +207,8 @@ action("mini_installer_archive") {
     "//chrome/common/win:eventlog_provider",
     "//chrome/installer/setup",
     "//third_party/icu:icudata",
+    "//custom_browser/resources:custom_browser_strings_pak",
+    "//custom_browser/common:generate_product_version",
   ]
 
   if (enable_hidpi) {

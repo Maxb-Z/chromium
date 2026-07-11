@@ -54,6 +54,7 @@ buildflag_header("buildflags") {
     "ENABLE_BACKGROUND_MODE=$enable_background_mode",
     "ENABLE_BACKGROUND_CONTENTS=$enable_background_contents",
     "ENABLE_CHROME_NOTIFICATIONS=$enable_chrome_notifications",
+    "ENABLE_CUSTOM_BROWSER=$enable_custom_browser",
     "ENABLE_DOWNGRADE_PROCESSING=$enable_downgrade_processing",
     "ENABLE_HANGOUT_SERVICES_EXTENSION=$enable_hangout_services_extension",
     "ENABLE_PDF_SAVE_TO_DRIVE=$enable_pdf_save_to_drive",
@@ -504,6 +505,7 @@ static_library("url_constants") {
   visibility = [
     "//chrome/browser/contextual_tasks/*",
     "//chrome/common/*",
+    "//custom_browser/*",
   ]
   sources = [
     "url_constants.h",

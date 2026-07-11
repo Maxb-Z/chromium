@@ -668,6 +668,7 @@ static_library("browser") {
     "//build/config/chromebox_for_meetings:buildflags",
     "//build/config/compiler:compiler_buildflags",
     "//build/config/linux/dbus:buildflags",
+    "//custom_browser/common:common",
     "//cc",
     "//chrome:extra_resources",
     "//chrome:resources",
@@ -4927,6 +4928,14 @@ static_library("browser") {
       "//third_party/search_engines_data:search_engines_scaled_resources_grit",
     ]
   }
+
+  if (enable_custom_browser) {
+    deps += [
+      "//custom_browser/browser:browser",
+      "//custom_browser/chromium_hooks:chrome_integration",
+      "//custom_browser/chromium_hooks:hook_core",
+    ]
+  }
 }
 
 # These are the dependencies for the "browser" target that are outside of
@@ -5181,6 +5190,11 @@ group("browser_generated_files") {
       "//components/autofill/core/browser/ml_model/logging:mojo_bindings",
       "//components/browser_apis/tab_strip:mojom",
     ]
+
+    if (enable_custom_browser) {
+      public_deps += [ "//custom_browser/ui/mojom:mojo_bindings" ]
+    }
+
     if (!is_official_build) {
       public_deps +=
           [ "//chrome/browser/ui/webui/new_tab_page/foo:mojo_bindings" ]

@@ -209,6 +209,7 @@
 #include "content/public/browser/render_process_host.h"
 #include "content/public/common/buildflags.h"
 #include "extensions/buildflags/buildflags.h"
+#include "custom_browser/ui/prefs/custom_browser_ui_prefs.h"
 #include "net/http/http_server_properties_manager.h"
 #include "pdf/buildflags.h"
 #include "printing/buildflags/buildflags.h"
@@ -1806,6 +1807,8 @@ void RegisterProfilePrefs(user_prefs::PrefRegistrySyncable* registry,
   Profile::RegisterProfilePrefs(registry);
   ProfileImpl::RegisterProfilePrefs(registry);
   ProfileNetworkContextService::RegisterProfilePrefs(registry);
+  // Custom Browser UI prefs.
+  CustomBrowserUiPrefs::RegisterProfilePrefs(registry);
   custom_handlers::ProtocolHandlerRegistry::RegisterProfilePrefs(registry);
   PushMessagingAppIdentifier::RegisterProfilePrefs(registry);
   PushMessagingUnsubscribedEntry::RegisterProfilePrefs(registry);

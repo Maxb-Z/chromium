@@ -256,6 +256,33 @@ bool PrepareTargetForMode(WebLocalFrame& frame, mojom::TypeAction::Mode mode) {
   return true;
 }
 
+bool ShouldReplaceAllOnPaste(mojom::TypeAction::Mode mode) {
+  return mode == mojom::TypeAction::Mode::kDeleteExisting;
+}
+
+WebElement ResolveEditablePasteTarget(const ResolvedTarget& resolved_target,
+                                      const WebElement& focused_element) {
+  if (focused_element && focused_element.IsEditable()) {
+    return focused_element;
+  }
+
+  if (resolved_target.node) {
+    WebElement root_editable = resolved_target.node.RootEditableElement();
+    if (root_editable && root_editable.IsEditable()) {
+      return root_editable;
+    }
+
+    if (resolved_target.node.IsElementNode()) {
+      WebElement target_element = resolved_target.node.To<WebElement>();
+      if (target_element.IsEditable()) {
+        return target_element;
+      }
+    }
+  }
+
+  return WebElement();
+}
+
 }  // namespace
 
 TypeTool::TypeTool(content::RenderFrame& frame,
@@ -299,8 +326,9 @@ KeyDispatcher::KeyParams TypeTool::GetBackspaceKeyParams() const {
 
 std::optional<KeyDispatcher::KeyParams> TypeTool::GetKeyParamsForChar(
     char16_t c) const {
-  // This function only supports ASCII characters. Non-ASCII characters are
-  // handled by composition in the Validate() function.
+  // This function only supports ASCII characters. Characters that cannot be
+  // converted into key events are handled later by composition or paste
+  // fallback paths.
   if (c > 0x7F) {
     return std::nullopt;
   }
@@ -558,6 +586,8 @@ void TypeTool::OnFocusingClickComplete(ToolFinishedCallback callback,
       focused_frame ? focused_frame->GetDocument().FocusedElement()
                     : WebElement();
   bool in_editing_context = focused_element && focused_element.IsEditable();
+  WebElement paste_target =
+      ResolveEditablePasteTarget(*resolved_target_, focused_element);
   if (in_editing_context) {
     journal_->Log(
         task_id_, "TypeTool::Execute::FocusElementEditable",
@@ -632,18 +662,49 @@ void TypeTool::OnFocusingClickComplete(ToolFinishedCallback callback,
     return;
   }
   // Fallback to using PasteText when we can't simulate typing.
-  if (in_editing_context) {
-    journal_->Log(task_id_, "TypeTool::Execute::PasteTextFallback",
-                  JournalDetailsBuilder()
-                      .Add("text", action_->text)
-                      .Add("focus", focused_element)
-                      .Build());
+  if (paste_target) {
+    const bool replace_all = ShouldReplaceAllOnPaste(action_->mode);
+    if (!in_editing_context) {
+      journal_->Log(task_id_, "TypeTool::Execute::PasteTextResolvedTarget",
+                    JournalDetailsBuilder()
+                        .Add("text", action_->text)
+                        .Add("target", paste_target)
+                        .Build());
+      paste_target.Focus();
+
+      if (!is_for_popup) {
+        WebLocalFrame* refocused_frame =
+            frame_->GetWebFrame()->FrameWidget()->FocusedWebLocalFrameInWidget();
+        WebElement refocused_element =
+            refocused_frame ? refocused_frame->GetDocument().FocusedElement()
+                            : WebElement();
+        if (refocused_element && refocused_element.IsEditable()) {
+          paste_target = refocused_element;
+        }
+      }
+    } else {
+      journal_->Log(task_id_, "TypeTool::Execute::PasteTextFallback",
+                    JournalDetailsBuilder()
+                        .Add("text", action_->text)
+                        .Add("focus", focused_element)
+                        .Build());
+    }
+
     base::WeakPtr<TypeTool> weak_this = weak_ptr_factory_.GetWeakPtr();
-    focused_element.PasteText(WebString::FromUtf8(action_->text),
-                              /*replace_all=*/false);
+    paste_target.PasteText(WebString::FromUtf8(action_->text), replace_all);
     if (!weak_this) {
       return;
     }
+
+    if (action_->follow_by_enter) {
+      mojom::ActionResultPtr enter_result = SimulateKeyPress(GetEnterKeyParams());
+      if (!IsOk(*enter_result)) {
+        enter_result->requires_page_stabilization = true;
+        std::move(callback).Run(std::move(enter_result));
+        return;
+      }
+    }
+
     std::move(callback).Run(MakeOkResult());
   } else {
     std::move(callback).Run(MakeResult(

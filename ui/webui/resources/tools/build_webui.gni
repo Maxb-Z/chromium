@@ -525,6 +525,14 @@ template("build_webui") {
       !defined(invoker.enable_type_aware_eslint_checks) ||
       invoker.enable_type_aware_eslint_checks
 
+  # custom-browser: when type-aware eslint checks are disabled, all consumers of
+  # `is_ash_webui` are in non-taken branches, so GN flags it as an unused
+  # assignment. Mark it intentionally-unused only in that case. No effect when
+  # eslint is enabled (upstream default).
+  if (!enable_type_aware_eslint_checks) {
+    not_needed([ "is_ash_webui" ])
+  }
+
   if (enable_type_aware_eslint_checks) {
     eslint_ts("lint_ts") {
       in_folder = preprocess_dir

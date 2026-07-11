@@ -50,6 +50,10 @@
 #include "third_party/blink/public/mojom/loader/local_resource_loader_config.mojom.h"
 #include "ui/base/webui/jstemplate_builder.h"
 
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/chromium_hooks/hook_dispatcher.h"
+#endif
+
 namespace content {
 
 namespace {
@@ -165,6 +169,11 @@ blink::mojom::LocalResourceLoaderConfigPtr CreateLocalResourceLoaderConfig(
     }
     auto* webui_data_source =
         static_cast<WebUIDataSourceImpl*>(data_source.get());
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+if (current_origin == webui_data_source->GetOrigin()) {
+  custom_browser::OnWebUIConfiguringLocalResource(controller->web_ui(), webui_data_source);
+}
+#endif
     AddDataSourceToConfig(webui_data_source, current_origin,
                           loader_config.get());
   }

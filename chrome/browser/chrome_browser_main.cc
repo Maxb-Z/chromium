@@ -38,6 +38,9 @@
 #include "chrome/browser/component_updater/registration.h"
 #include "chrome/browser/enterprise/browser_management/management_service_factory.h"
 #include "chrome/browser/enterprise/chrome_browser_main_extra_parts_enterprise.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/chromium_hooks/custom_browser_main_extra_parts.h"
+#endif
 #include "chrome/browser/first_run/bookmark_importer.h"
 #include "chrome/browser/first_run/first_run_features.h"
 #include "chrome/browser/gpu/chrome_browser_main_extra_parts_gpu.h"
@@ -766,6 +769,11 @@ std::unique_ptr<content::BrowserMainParts> ChromeBrowserMainParts::Create(
 
   // Construct additional browser parts. Stages are called in the order in
   // which they are added.
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // main_parts->AddParts(std::make_unique<CustomBrowserMainExtraParts>());
+  main_parts->AddParts(
+      std::make_unique<custom_browser::CustomBrowserMainExtraParts>());
+#endif
 #if defined(TOOLKIT_VIEWS)
 #if BUILDFLAG(IS_LINUX)
   main_parts->AddParts(

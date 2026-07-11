@@ -99,6 +99,10 @@ class TopControlsSlideControllerTest;
 class VerticalTabStripRegionView;
 class WebAppFrameToolbarView;
 
+namespace custom_browser::native_ui {
+class MainContentsNativeUI;
+}  // namespace custom_browser::native_ui
+
 namespace gfx {
 class AnimationRunner;
 }  // namespace gfx
@@ -839,6 +843,9 @@ class BrowserView : public BrowserWindow,
   friend class BrowserViewLayoutDelegateImplOld;
   friend class BrowserViewLayoutDelegateImplBrowsertest;
   friend class TopControlsSlideControllerTest;
+  friend class CustomBrowserView;
+  friend class custom_browser::native_ui::MainContentsNativeUI;
+  friend class CustomBrowserViewDelegateImpl;
   FRIEND_TEST_ALL_PREFIXES(BrowserViewTest, BrowserView);
   FRIEND_TEST_ALL_PREFIXES(BrowserViewTest, AccessibleWindowTitle);
   FRIEND_TEST_ALL_PREFIXES(PermissionChipUnitTest, AccessibleName);
