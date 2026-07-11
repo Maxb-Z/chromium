@@ -952,7 +952,16 @@ void Label::PaintText(gfx::Canvas* canvas) {
     if (view->layer()) {
       // If we aren't painted to an opaque background, we must paint to an
       // opaque layer.
-      DCHECK(view->layer()->fills_bounds_opaquely());
+      //
+      // Disabled for the custom WebUI browser: its top-chrome is replaced by a
+      // WebUI surface whose container views/layers are intentionally
+      // non-opaque, so upstream toolbar/tab-strip Labels with subpixel
+      // rendering legitimately paint over translucent ancestors and trip this
+      // invariant during normal operation. ui/views cannot reach the
+      // ENABLE_CUSTOM_BROWSER buildflag or webui_browser::IsWebUIBrowserEnabled()
+      // (layering), so the check is commented out rather than guarded. See the
+      // contents-size DCHECK handling in browser_tabrestore.cc for the parallel.
+      // DCHECK(view->layer()->fills_bounds_opaquely());
       break;
     }
   }

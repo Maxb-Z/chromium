@@ -50,6 +50,12 @@ enum class KeepAliveOrigin {
   // c/b/glic
   GLIC_LAUNCHER,
 
+  // custom_browser (Velloc): keeps the process alive for the Nexus launcher
+  // (system-tray + global hotkey), independent of BACKGROUND_MODE_MANAGER which
+  // is gated on installed background extensions. See
+  // //custom_browser/browser/nexus/launcher.
+  NEXUS_LAUNCHER,
+
   // c/b/notifications
   NOTIFICATION,
   PENDING_NOTIFICATION_CLICK_EVENT,

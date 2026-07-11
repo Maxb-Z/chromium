@@ -184,6 +184,7 @@ source_set("impl") {
     "//components/wallet/core/common:prefs",
     "//components/webui/chrome_urls",
     "//components/webui/flags",
+    "//custom_browser:buildflags",
     "//services/preferences/public/cpp/tracked",
     "//services/preferences/public/mojom",
     "//services/preferences/tracked",
@@ -196,7 +197,10 @@ source_set("impl") {
   }
 
   if (enable_custom_browser) {
-    deps += [ "//custom_browser/ui/mojom:mojo_bindings" ]
+    deps += [
+      "//custom_browser/browser/nexus/launcher:prefs",
+      "//custom_browser/ui/mojom:mojo_bindings",
+    ]
   }
 
   if (enable_extensions_core) {

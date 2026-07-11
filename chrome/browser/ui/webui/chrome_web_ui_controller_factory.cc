@@ -344,6 +344,14 @@ bool ChromeWebUIControllerFactory::IsWebUIAllowedToMakeNetworkRequests(
   //
   // If you are adding a new host to this list, please file a corresponding bug
   // to track its removal. See https://crbug.com/40091019 for the metabug.
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // The custom top-chrome WebUI (Nexus panel host) legitimately issues network
+  // requests directly from its renderer, so exempt it from the WebUI
+  // no-network-request DCHECK in WebRequestPermissions::HideRequest.
+  if (origin.host() == chrome::kChromeUICustomBrowserHost) {
+    return true;
+  }
+#endif
   return
       // https://crbug.com/40571286
       origin.host() == chrome::kChromeUISyncConfirmationHost ||
