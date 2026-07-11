@@ -506,10 +506,3 @@ build_webui("build") {
               root_build_dir) ]
   }
 }
-
-group("resources_with_patch_webui") {
-  public_deps = [ ":resources" ]
-  if (enable_custom_browser) {
-    public_deps += [ "//custom_browser/resources/patch_webui:resources" ]
-  }
-}

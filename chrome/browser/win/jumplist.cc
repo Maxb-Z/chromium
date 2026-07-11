@@ -58,6 +58,11 @@
 #include "ui/gfx/win/icon_util.h"
 #include "url/gurl.h"
 
+#include "custom_browser/buildflags.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/win/nexus_jumplist_tasks.h"
+#endif
+
 namespace {
 
 // The default maximum number of items to display in JumpList is 10.
@@ -165,6 +170,19 @@ bool UpdateTaskCategory(
     JumpListUpdater* jumplist_updater,
     policy::IncognitoModeAvailability incognito_availability,
     const base::FilePath& cmd_line_profile_dir) {
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // custom-browser: replace the default New Window / New Incognito Window
+  // "Tasks" with product-appropriate ones (New <Product> window / New browser
+  // window / New Incognito Window). Product/app-id scoped, built off the UI
+  // thread — the helper takes only these precomputed inputs.
+  {
+    ShellLinkItemList items;
+    if (custom_browser::BuildNexusJumpListTasks(incognito_availability,
+                                                cmd_line_profile_dir, &items)) {
+      return jumplist_updater->AddTasks(items);
+    }
+  }
+#endif
   base::FilePath chrome_path;
   if (!base::PathService::Get(base::FILE_EXE, &chrome_path))
     return false;

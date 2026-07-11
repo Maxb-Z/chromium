@@ -25,6 +25,14 @@
 #include "chrome/browser/controlled_frame/controlled_frame_user_agent_util.h"
 #endif
 
+#include "custom_browser/buildflags.h"
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+// Nexus panel guest <webview>: no context menu by default; a single
+// "Inspect" item when `nexus.inspect_menu_enabled` is on. See
+// custom_browser/browser/nexus/nexus_webview_context_menu.h.
+#include "custom_browser/browser/nexus/nexus_webview_context_menu.h"
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+
 using guest_view::GuestViewEvent;
 
 namespace extensions {
@@ -73,6 +81,16 @@ bool ChromeWebViewGuestDelegate::HandleContextMenu(
     // parameters) to complete.
     return true;
   }
+
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // Nexus panel guest: swallow the request (no menu) or show the
+  // single-item "Inspect" menu, per the nexus.inspect_menu_enabled pref.
+  // Every other guest falls through to the default pipeline below.
+  if (nexus::MaybeHandleNexusGuestContextMenu(web_view_guest(),
+                                              render_frame_host, params)) {
+    return true;
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 
   ContextMenuDelegate* menu_delegate =
       ContextMenuDelegate::FromWebContents(web_contents);

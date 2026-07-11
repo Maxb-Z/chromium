@@ -250,6 +250,7 @@ source_set("impl") {
       "//components/services/app_service/public/cpp:app_types",
       "//components/strings:components_strings",
       "//components/url_formatter",
+      "//custom_browser:buildflags",
       "//extensions/browser",
       "//net",
       "//printing/buildflags",

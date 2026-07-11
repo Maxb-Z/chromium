@@ -311,6 +311,17 @@ bool IsNexusGlicGuest(content::WebContents* web_contents) {
     return false;
   }
   const GURL& url = outer->GetLastCommittedURL();
+  // NOTE (e2e F2, staged — NOT activated): broadening this to
+  // `url.host() == "custom.top-chrome"` makes the Nexus guest <webview> report
+  // as type:"page" so Playwright auto-wraps it (retiring the raw-CDP
+  // GuestFrame adapter). That was tried and REVERTED: under a 10-worker
+  // census it destabilized the suite (179 pass / 12 fail / 50 flaky / 1.1h vs
+  // ~235 / 0 / ≤6 / ~30m) — the `waitForGuestFrame` fast path's 2s budget +
+  // `visibilityState==='visible'` gate is unreliable for unfocused parallel
+  // browsers, and Playwright then auto-attaches the hidden preload guest copy
+  // too. Re-activating requires hardening that fast path (robust visible-guest
+  // discrimination among multiple page targets + a longer budget) and its own
+  // CI-verified rollout. See nexus_web/src/browser/webview/E2E_TEST_SEAMS.md.
   return url.SchemeIs("chrome") && url.host() == "glic";
 }
 

@@ -532,7 +532,6 @@ inline constexpr char kChromeUISessionServiceInternalsPath[] =
 
 #if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 inline constexpr char kChromeUICustomBrowserHost[] = "custom.top-chrome";
-inline constexpr char kChromeUICustomBrowserURL[] = "chrome://custom.top-chrome";
 #endif
 
 #if BUILDFLAG(ENTERPRISE_WATERMARK)

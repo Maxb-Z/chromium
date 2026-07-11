@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/config/chrome_build.gni")
 import("//components/captive_portal/core/features.gni")
 import("//components/guest_view/buildflags/buildflags.gni")
 import("//extensions/buildflags/buildflags.gni")
@@ -72,6 +73,16 @@ source_set("impl") {
     "//components/pdf/common:constants",
     "//components/pdf/common:util",
   ]
+
+  if (enable_custom_browser) {
+    # Nexus panel guest context-menu policy (no menu by default; "Inspect"
+    # when nexus.inspect_menu_enabled is on) — consulted from the guarded
+    # hook in web_view/chrome_web_view_guest_delegate.cc.
+    deps += [
+      "//custom_browser:buildflags",
+      "//custom_browser/browser/nexus:webview_context_menu",
+    ]
+  }
 
   if (enable_extensions) {
     deps += [ "//chrome/browser/controlled_frame" ]

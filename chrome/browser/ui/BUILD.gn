@@ -4924,12 +4924,12 @@ static_library("ui") {
       "views/webid/webid_utils.h",
     ]
 
-    if( enable_custom_browser) {
-       sources += browser_view_sources
-       deps += [
-         "//custom_browser:buildflags",
-         "//custom_browser/browser/nexus/launcher:delegate",
-       ]
+    if (enable_custom_browser) {
+      sources += browser_view_sources
+      deps += [
+        "//custom_browser:buildflags",
+        "//custom_browser/browser/nexus/launcher:delegate",
+      ]
     }
     sources += get_target_outputs(":webui_name_variants")
 

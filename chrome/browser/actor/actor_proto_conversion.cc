@@ -976,10 +976,19 @@ void FetchCallback(
   if (!has_apc || (screenshot_required && !has_screenshot)) {
     tab_observation->set_result(
         apc::TabObservation::TAB_OBSERVATION_FETCH_ERROR);
-    return;
+    // custom-browser: a failed screenshot capture must NOT discard a
+    // successful APC extraction. Nexus observations are APC-driven (the
+    // screenshot only matters for the explicit screenshot tool), and in
+    // same-window mode the tab hosted behind the panel WebUI never paints,
+    // so viewport capture fails while the DOM-based APC succeeds. Keep the
+    // FETCH_ERROR + SCREENSHOT_ERROR codes (consumers surface them) but
+    // fall through to attach the APC; only bail when the APC itself failed.
+    if (!has_apc) {
+      return;
+    }
+  } else {
+    tab_observation->set_result(apc::TabObservation::TAB_OBSERVATION_OK);
   }
-
-  tab_observation->set_result(apc::TabObservation::TAB_OBSERVATION_OK);
   {
     apc::ActionsResult_LatencyInformation_LatencyStep* latency_step =
         latency_info->add_latency_steps();
