@@ -15,12 +15,18 @@
 #include "base/test/bind.h"
 #include "base/test/task_environment.h"
 #include "base/version.h"
+#include "build/build_config.h"
 #include "chrome/browser/updater/browser_updater_client_testutils.h"
 #include "chrome/browser/updater/updater.h"
+#include "chrome/common/buildflags.h"
 #include "chrome/updater/branded_constants.h"
 #include "chrome/updater/update_service.h"
 #include "chrome/updater/updater_scope.h"
 #include "testing/gtest/include/gtest/gtest.h"
+
+#if BUILDFLAG(IS_WIN) && BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+#include "custom_browser/common/product_version.h"
+#endif
 
 namespace updater {
 
@@ -111,6 +117,29 @@ TEST(BrowserUpdaterClientTest, StoreRetrieveLastUpdateState) {
   EXPECT_EQ(GetLastOnDemandUpdateState()->state,
             UpdateService::UpdateState::State::kNoUpdate);
 }
+
+#if BUILDFLAG(IS_WIN) && BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+// The browser must register itself with the product version — the value
+// setup.exe writes to Clients\pv and the version the update server targets —
+// not the Chromium engine version. Regression test for the registration
+// reporting version_info::GetVersionNumber(), which desyncs the updater's
+// persisted registration from the installed product.
+TEST(BrowserUpdaterClientTest, RegistersWithCustomBrowserProductVersion) {
+  base::test::SingleThreadTaskEnvironment task_environment;
+  std::string registered_version;
+  base::RunLoop loop;
+  BrowserUpdaterClient::Create(
+      MakeFakeService(
+          UpdateService::Result::kSuccess, {},
+          base::BindLambdaForTesting([&](const RegistrationRequest& request) {
+            registered_version = request.version;
+          })),
+      UpdaterScope::kUser)
+      ->Register(loop.QuitClosure());
+  loop.Run();
+  EXPECT_EQ(registered_version, custom_browser::kCustomBrowserProductVersion);
+}
+#endif  // BUILDFLAG(IS_WIN) && BUILDFLAG(ENABLE_CUSTOM_BROWSER)
 
 TEST(BrowserUpdaterClientTest, StoreRetrieveLastAppState) {
   base::test::SingleThreadTaskEnvironment task_environment;
