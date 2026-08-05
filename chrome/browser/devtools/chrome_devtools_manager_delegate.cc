@@ -321,7 +321,8 @@ bool IsNexusGlicGuest(content::WebContents* web_contents) {
   // browsers, and Playwright then auto-attaches the hidden preload guest copy
   // too. Re-activating requires hardening that fast path (robust visible-guest
   // discrimination among multiple page targets + a longer budget) and its own
-  // CI-verified rollout. See nexus_web/src/browser/webview/E2E_TEST_SEAMS.md.
+  // CI-verified rollout. See internal/docs/testing/nexus-web-e2e-testing.md
+  // §3.2a (was nexus_web/src/browser/webview/E2E_TEST_SEAMS.md).
   return url.SchemeIs("chrome") && url.host() == "glic";
 }
 
