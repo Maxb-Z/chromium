@@ -157,6 +157,10 @@ source_set("impl") {
   deps = [
     ":status_text_builder_utils",
     "//chrome/browser:browser_process",
+
+    # BUILDFLAG(ENABLE_CUSTOM_BROWSER) in chrome_download_manager_delegate.cc
+    # (Nexus agent tabs continue downloads without a Save-As prompt).
+    "//chrome/browser:buildflags",
     "//chrome/browser:primitives",
     "//chrome/browser/actor",
     "//chrome/browser/content_settings",

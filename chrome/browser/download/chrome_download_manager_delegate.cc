@@ -31,6 +31,7 @@
 #include "base/time/time.h"
 #include "build/build_config.h"
 #include "chrome/browser/browser_process.h"
+#include "chrome/browser/buildflags.h"
 #include "chrome/browser/download/download_core_service.h"
 #include "chrome/browser/download/download_core_service_factory.h"
 #include "chrome/browser/download/download_crx_util.h"
@@ -1554,6 +1555,23 @@ void ChromeDownloadManagerDelegate::RequestConfirmation(
   return;
 
 #else   // BUILDFLAG(IS_ANDROID)
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // In a custom-browser (Nexus) build the actor is unattended — there is no
+  // human to answer a Save-As. If an actor task is driving this download's tab,
+  // continue to the suggested path without prompting, instead of deferring to a
+  // user takeover that never comes or showing a native picker that would block
+  // the headless, occluded agent window. The download proceeds to its default
+  // location; the agent captures/relocates it into the workspace via
+  // BrowserDownload. `GetExecutionEngineForDownloadItem` is non-null only while
+  // an actor task is acting on the tab — exactly when the takeover path below
+  // would otherwise fire.
+  if (GetExecutionEngineForDownloadItem(download)) {
+    std::move(callback).Run(
+        DownloadConfirmationResult::CONTINUE_WITHOUT_CONFIRMATION,
+        ui::SelectedFileInfo(suggested_path));
+    return;
+  }
+#endif  // BUILDFLAG(ENABLE_CUSTOM_BROWSER)
   auto trigger_user_takeover = base::BindOnce(
       [](base::WeakPtr<ChromeDownloadManagerDelegate> download_manager_delegate,
          const std::string& guid, const base::FilePath& suggested_path,

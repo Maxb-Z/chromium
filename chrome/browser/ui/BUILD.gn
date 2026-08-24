@@ -5691,6 +5691,9 @@ static_library("ui") {
       # Browser::RunFileChooser consults this to answer Nexus BrowserUpload
       # file pickers without showing the native dialog.
       "//custom_browser/browser/nexus:file_chooser_interceptor",
+      # ...and this to cancel an unarmed native file dialog on an agent tab
+      # and record a notice instead of blocking the headless agent window.
+      "//custom_browser/browser/nexus:agent_notice",
       "//custom_browser/browser/nexus:guest_config",
       "//custom_browser/browser/nexus:nexus_settings_handler",
       "//custom_browser/browser/nexus:nexus_webui_config",
