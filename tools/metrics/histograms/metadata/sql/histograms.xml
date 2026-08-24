@@ -71,6 +71,7 @@ chromium-metrics-reviews@google.com.
   <variant name="MediaDeviceSalts" summary="MediaDeviceSalts"/>
   <variant name="MediaLicense" summary="MediaLicense"/>
   <variant name="MultistepFilter" summary="MultistepFilter"/>
+  <variant name="NexusSqlite" summary="Velloc Nexus generic SQLite bridge capability"/>
   <variant name="OfflinePageMetadata" summary="OfflinePageMetadata"/>
   <variant name="OptOutBlacklist" summary="OptOutBlacklist"/>
   <variant name="PageContentStore" summary="Page Content Store"/>
