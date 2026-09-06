@@ -67,6 +67,27 @@ void ActorUiContentsContainerController::OnViewBoundsChanged(
                                 weak_ptr_factory_.GetWeakPtr()));
 }
 
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+void ActorUiContentsContainerController::OnViewVisibilityChanged(
+    views::View* observed_view,
+    views::View* starting_view,
+    bool visible) {
+  // custom-browser: `starting_view` is the contents container (or an
+  // ancestor) that CustomBrowserViewLayout::LayoutContentsContainerView
+  // just showed/hid for a session switch; the tab did not change, so no
+  // upstream signal fires. Re-run the same update OnViewBoundsChanged does
+  // so HandoffButtonController::UpdateState re-reads the anchor chain.
+  CHECK(observed_view == contents_container_view_);
+  if (!contents_container_view_->web_contents()) {
+    return;
+  }
+  content::GetUIThreadTaskRunner({})->PostTask(
+      FROM_HERE, base::BindOnce(&ActorUiContentsContainerController::
+                                    NotifyTabControllerOnViewBoundsChanged,
+                                weak_ptr_factory_.GetWeakPtr()));
+}
+#endif
+
 void ActorUiContentsContainerController::OnWebContentsAttached(
     views::WebView* web_view) {
   if (!web_view->web_contents()) {

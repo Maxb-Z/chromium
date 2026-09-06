@@ -16,6 +16,7 @@
 #include "chrome/browser/ui/views/frame/immersive_mode_controller.h"
 #include "components/prefs/pref_change_registrar.h"
 #include "content/public/browser/web_contents_observer.h"
+#include "custom_browser/buildflags.h"
 #include "ui/base/unowned_user_data/scoped_unowned_user_data.h"
 #include "ui/views/view.h"
 #include "ui/views/view_observer.h"
@@ -74,6 +75,14 @@ class ActorUiContentsContainerController : public content::WebContentsObserver,
 
   // views::ViewObserver:
   void OnViewBoundsChanged(views::View* observed_view) override;
+#if BUILDFLAG(ENABLE_CUSTOM_BROWSER)
+  // custom-browser: the kNexus contents container is shown/hidden per chat
+  // session; the handoff button must follow it (see
+  // HandoffButtonController::UpdateState).
+  void OnViewVisibilityChanged(views::View* observed_view,
+                               views::View* starting_view,
+                               bool visible) override;
+#endif
 
   // Called by the WindowController when the omnibox popup visibility changes.
   void NotifyWindowOmniboxPopupVisibilityChanged();
